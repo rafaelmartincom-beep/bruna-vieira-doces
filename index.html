@@ -186,7 +186,7 @@ textarea.entrada{height:auto;min-height:140px;padding:12px 14px;line-height:1.5;
 <script>
 (function(){
 var sb = null, uid = null;
-var S = { logado:false, authPronto:false, authModo:'entrar', authMsg:'', authEmail:'', ocupado:false, loginErro:'', ings:{}, recs:{}, carregou:{i:false,r:false}, semBanco:false, view:'inicio', filtro:'todas', busca:'', buscaIng:'', draft:null, ingDraft:null, ingOrig:null, ingVolta:null, confirma:false, erro:'', cfg:null, cfgDraft:null, compraQtd:100 };
+var S = { logado:false, nome:'', authNome:'', authPronto:false, authModo:'entrar', authMsg:'', authEmail:'', ocupado:false, loginErro:'', ings:{}, recs:{}, carregou:{i:false,r:false}, semBanco:false, view:'inicio', filtro:'todas', busca:'', buscaIng:'', draft:null, ingDraft:null, ingOrig:null, ingVolta:null, confirma:false, erro:'', cfg:null, cfgDraft:null, compraQtd:100 };
 var view = document.getElementById('view');
 var abas = document.getElementById('abas');
 
@@ -313,7 +313,8 @@ function vLogin(){
   var campoEmail = '<label class="campo">E-mail<input id="l-email" class="entrada" type="email" autocomplete="username" placeholder="seu@email.com" value="' + esc(S.authEmail) + '"></label>';
   var oc = S.ocupado ? ' disabled' : '';
   if (S.authModo === 'criar'){
-    out += '<form class="form" id="f-criar" novalidate><h2 style="text-align:center">Criar conta</h2>' + erro + campoEmail +
+    out += '<form class="form" id="f-criar" novalidate><h2 style="text-align:center">Criar conta</h2>' + erro +
+      '<label class="campo">Seu nome<input id="l-nome" class="entrada" type="text" autocomplete="name" placeholder="Como você quer ser chamada(o)" value="' + esc(S.authNome) + '"></label>' + campoEmail +
       '<label class="campo">Senha<input id="l-senha" class="entrada" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></label>' +
       '<label class="campo">Repita a senha<input id="l-senha2" class="entrada" type="password" autocomplete="new-password"></label>' +
       '<button class="btn" type="submit"' + oc + '>' + (S.ocupado ? 'Criando…' : 'Criar conta') + '</button>' +
@@ -341,12 +342,15 @@ function erroLogin(msg, foco){ S.ocupado = false; S.loginErro = msg; render(); v
 function pegaEmail(){ var e = valor('l-email').trim().toLowerCase(); S.authEmail = e; return e; }
 function ocupar(){ S.ocupado = true; S.loginErro = ''; S.authMsg = ''; render(); }
 function criarConta(){
+  var nome = valor('l-nome').trim().replace(/\s+/g, ' ');
+  S.authNome = nome;
   var email = pegaEmail(), s1 = valor('l-senha'), s2 = valor('l-senha2');
+  if (!nome) return erroLogin('Digite seu nome.', 'l-nome');
   if (!/^\S+@\S+\.\S+$/.test(email)) return erroLogin('Digite um e-mail válido.', 'l-email');
   if (s1.length < 6) return erroLogin('A senha precisa ter pelo menos 6 caracteres.', 'l-senha');
   if (s1 !== s2) return erroLogin('As duas senhas não estão iguais.', 'l-senha2');
   ocupar();
-  sb.auth.signUp({ email: email, password: s1, options: { emailRedirectTo: location.origin + location.pathname } }).then(function(r){
+  sb.auth.signUp({ email: email, password: s1, options: { emailRedirectTo: location.origin + location.pathname, data: { nome: nome } } }).then(function(r){
     if (r.error) return erroLogin(traduzErro(r.error), 'l-email');
     S.ocupado = false;
     if (!r.data || !r.data.session){ S.authModo = 'entrar'; S.authMsg = 'Enviamos um link de confirmação para ' + email + '. Abra o e-mail, confirme e depois entre aqui.'; render(); }
@@ -385,11 +389,12 @@ function salvarNovaSenha(){
 }
 function entrarNoApp(user){
   uid = user.id; S.logado = true; S.authPronto = true; S.authModo = 'entrar'; S.authMsg = ''; S.loginErro = '';
+  S.nome = (user.user_metadata && String(user.user_metadata.nome || '').trim()) || '';
   S.view = 'inicio'; S.carregou = { i:false, r:false };
   render(); window.scrollTo(0,0); carregar();
 }
 function saiuDoApp(){
-  uid = null; S.logado = false; S.ings = {}; S.recs = {}; S.cfg = null; S.draft = null; S.ingDraft = null; S.cfgDraft = null;
+  uid = null; S.logado = false; S.nome = ''; S.ings = {}; S.recs = {}; S.cfg = null; S.draft = null; S.ingDraft = null; S.cfgDraft = null;
   S.view = 'inicio'; S.authModo = 'entrar'; render(); window.scrollTo(0,0);
 }
 function sair(){
@@ -404,7 +409,8 @@ function vInicio(){
   var saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   var data = new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'});
   data = data.charAt(0).toUpperCase() + data.slice(1);
-  var out = '<div class="row between" style="align-items:flex-start"><div class="stack" style="gap:2px"><div class="sub">' + esc(data) + '</div><h1>' + saud + ', Bruna</h1></div><button class="sair" type="button" id="sair"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>Sair</button></div>';
+  var out = '<div class="row between" style="align-items:flex-start"><div class="stack" style="gap:2px"><div class="sub">' + esc(data) + '</div><h1>' + saud + (S.nome ? ', ' + esc(S.nome.split(' ')[0]) : '') + '</h1></div><button class="sair" type="button" id="sair"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>Sair</button></div>';
+  if (!S.nome) out += '<div class="confirma"><strong>Como você quer ser chamada(o)?</strong><span class="sub">Seu nome aparece aqui na abertura do app.</span><div class="row" style="gap:8px"><input id="meu-nome" class="entrada grow" style="height:46px" autocomplete="name" placeholder="Seu nome" aria-label="Seu nome"><button type="button" id="salvar-nome" style="background:var(--grena);color:#fff;height:46px">Salvar</button></div></div>';
   if (S.semBanco) out += '<div class="faixa">Não consegui conectar ao armazenamento agora. O que você cadastrar pode não ficar salvo. Tente abrir de novo daqui a pouco.</div>';
   if (!S.carregou.i || !S.carregou.r) return out + '<div class="vazio"><p>Buscando suas receitas e ingredientes.</p></div>';
   if (!recs.length && !ings.length){
@@ -764,6 +770,14 @@ function carregarExemplo(){
 document.addEventListener('click', function(ev){
   var t = ev.target.closest('button'); if (!t) return;
   if (t.id === 'sair'){ sair(); return; }
+  if (t.id === 'salvar-nome'){
+    var campo = document.getElementById('meu-nome');
+    var nm = campo ? campo.value.trim().replace(/\s+/g, ' ') : '';
+    if (!nm){ if (campo) campo.focus(); return; }
+    S.nome = nm; render();
+    sb.auth.updateUser({ data: { nome: nm } }).then(function(r){ if (r.error) throw r.error; toast('Nome salvo'); }).catch(falhou);
+    return;
+  }
   if (t.id === 'ir-esqueci' || t.id === 'ir-criar' || t.id === 'ir-entrar'){
     var em = document.getElementById('l-email'); if (em) S.authEmail = em.value.trim();
     S.authModo = t.id === 'ir-esqueci' ? 'esqueci' : t.id === 'ir-criar' ? 'criar' : 'entrar';
