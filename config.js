@@ -3,5 +3,5 @@
 // NUNCA coloque aqui a chave secret/service_role.
 window.BV_CONFIG = {
   supabaseUrl: 'https://ymimjoosdlyuupsggqdd.supabase.co',
-  supabaseKey: 'COLE_AQUI_A_CHAVE_PUBLICA'
+  supabaseKey: 'sb_publishable_qCiEVms4cu-ob3AbgVUgAA_1LWmGsav'
 };
