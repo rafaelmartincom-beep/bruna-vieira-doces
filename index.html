@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bruna Vieira Doces Finos</title>
+<meta name="description" content="Receitas, ingredientes e precificação da Bruna Vieira Doces Finos.">
+<meta name="theme-color" content="#6E1423">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bruna Vieira">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
+<style>
+/* App de uma coluna, estilo celular: conteúdo rolando, barra de abas fixa embaixo. Visual único claro, grená sobre branco. */
+:root{
+  --grena:#6E1423; --grena-escuro:#4E0D18; --rosado:#F6ECEE; --rosado-txt:#F3DDE1;
+  --fundo:#FFFFFF; --suave:#F7F3F3; --linha:#EFE6E8; --tinta:#1F1A1B; --apagado:#6E6466; --borda:#E4DADC;
+  --serif:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans:'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
+:root{padding-top:env(safe-area-inset-top, 0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0}
+body{background:var(--fundo);color:var(--tinta);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--grena);outline-offset:2px}
+.app{max-width:480px;margin:0 auto;padding-left:max(20px, env(safe-area-inset-left, 0px));padding-right:max(20px, env(safe-area-inset-right, 0px));padding-block:28px 120px;display:flex;flex-direction:column;gap:22px}
+.app.editor{padding-bottom:230px}
+h1{margin:0;font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.1;text-wrap:balance}
+h2{margin:0;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--apagado)}
+.sub{font-size:13px;color:var(--apagado)}
+.row{display:flex;align-items:center;gap:12px}
+.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:10px}
+.grow{flex:1 1 auto;min-width:0}
+
+.mono{width:44px;height:44px;border-radius:22px;background:var(--rosado);color:var(--grena);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:600;flex-shrink:0}
+.fab{width:48px;height:48px;border-radius:24px;background:var(--grena);color:#fff;border:0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fab:hover{background:var(--grena-escuro)}
+
+.resumo{background:var(--grena);color:#fff;border-radius:20px;padding:20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.resumo div+div{border-left:1px solid rgba(255,255,255,.18);padding-left:14px}
+.resumo b{display:block;font-family:var(--serif);font-size:38px;font-weight:600;line-height:1}
+.resumo span{font-size:12px;color:var(--rosado-txt)}
+
+.aviso{display:flex;align-items:center;gap:14px;min-height:60px;padding:10px 16px;border-radius:14px;background:#F8F1F2;border:0;width:100%;text-align:left}
+.ponto{width:8px;height:8px;border-radius:4px;background:var(--grena);flex-shrink:0}
+.aviso strong{display:block;font-size:15px;font-weight:600}
+.aviso small{display:block;font-size:13px;color:var(--apagado);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.item{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 0;border:0;border-bottom:1px solid var(--linha);background:none;width:100%;text-align:left}
+.item .nome{font-size:15px;font-weight:500}
+.item .info{font-size:13px;color:var(--apagado)}
+.preco{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--grena);white-space:nowrap}
+.tag{font-size:11px;font-weight:600;color:var(--grena);background:var(--rosado);border-radius:999px;padding:4px 9px;white-space:nowrap}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.link{background:none;border:0;color:var(--grena);font-weight:600;font-size:14px;padding:12px 0;min-height:44px}
+
+.busca{display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;background:var(--suave);color:var(--apagado)}
+.busca input{flex:1;min-width:0;border:0;background:transparent;font-size:16px;color:var(--tinta);outline:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--borda);background:#fff;font-size:14px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--grena);border-color:var(--grena);color:#fff}
+
+.voltar{display:flex;align-items:center;gap:4px;background:none;border:0;color:var(--grena);font-size:15px;font-weight:500;min-height:44px;padding:0}
+.titulo-input{width:100%;border:0;border-bottom:1.5px solid var(--borda);padding:4px 0 8px;font-family:var(--serif);font-size:32px;font-weight:600;outline:none;background:transparent}
+.titulo-input:focus{border-bottom-color:var(--grena)}
+.caixa{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 6px 16px;border:1px solid var(--borda);border-radius:14px}
+.passo{width:44px;height:44px;border:0;border-radius:10px;background:var(--suave);color:var(--grena);font-size:22px;line-height:1}
+.passo-val{width:70px;text-align:center;border:0;font-size:17px;font-weight:600;background:transparent;outline:none}
+label.campo{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:500}
+.entrada{height:52px;border:1px solid var(--borda);border-radius:12px;padding:0 14px;font-size:17px;background:#fff;width:100%;outline:none}
+.entrada:focus{border-color:var(--grena)}
+.prefixo{display:flex;align-items:center;gap:8px;height:56px;border:1.5px solid var(--borda);border-radius:12px;padding:0 16px;background:#fff}
+.prefixo:focus-within{border-color:var(--grena)}
+.prefixo span{font-size:18px;color:var(--apagado)}
+.prefixo input{flex:1;min-width:0;border:0;outline:none;font-size:22px;font-weight:600;background:transparent}
+.seg{display:flex;height:52px;border:1px solid var(--borda);border-radius:12px;padding:4px;gap:4px;flex-shrink:0}
+.seg button{min-width:46px;border:0;border-radius:9px;background:transparent;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--grena);color:#fff}
+
+.ing-linha{display:flex;align-items:center;gap:8px;min-height:56px;border-bottom:1px solid var(--linha)}
+.ing-linha .qtd{width:76px;height:42px;border:1px solid var(--borda);border-radius:10px;padding:0 8px;text-align:right;font-size:15px;outline:none}
+.ing-linha .qtd:focus{border-color:var(--grena)}
+.ing-linha .un{width:22px;font-size:13px;color:var(--apagado)}
+.ing-linha .custo{width:76px;text-align:right;font-size:14px}
+.x{width:36px;height:36px;border:0;background:none;color:var(--apagado);border-radius:8px;flex-shrink:0}
+.x:hover{background:var(--suave);color:var(--grena)}
+.add{display:flex;gap:8px}
+.add select{flex:1;min-width:0;height:48px;border:1px solid var(--borda);border-radius:12px;padding:0 10px;background:#fff;font-size:15px}
+.btn2{height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--grena);background:#fff;color:var(--grena);font-weight:600}
+
+.cards2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.mini{background:var(--suave);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.mini span{font-size:12px;color:var(--apagado)}
+.mini b{font-size:18px;font-weight:600}
+.margens{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.margens .chip{border-radius:12px;height:44px;padding:0}
+
+.painel{position:fixed;left:0;right:0;bottom:0;z-index:5}
+.painel-in{max-width:480px;margin:0 auto;background:var(--grena);color:#fff;border-radius:26px 26px 0 0;padding:18px max(24px, env(safe-area-inset-left, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(24px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:14px}
+.painel small{font-size:13px;color:var(--rosado-txt)}
+.painel .grande{font-family:var(--serif);font-size:44px;font-weight:600;line-height:1}
+.painel .lado{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:13px;color:var(--rosado-txt);text-align:right}
+.btn-branco{height:52px;border-radius:14px;border:0;background:#fff;color:var(--grena);font-size:16px;font-weight:600;width:100%}
+.btn{height:54px;border-radius:14px;border:0;background:var(--grena);color:#fff;font-size:16px;font-weight:600;width:100%}
+.btn:hover{background:var(--grena-escuro)}
+.btn-perigo{background:none;border:0;color:var(--grena);font-weight:600;min-height:44px;padding:0 4px}
+.confirma{background:var(--rosado);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.confirma .row button{height:44px;border-radius:10px;padding:0 16px;font-weight:600;border:0}
+.erro{color:var(--grena);font-size:13px;font-weight:600}
+.saipor{background:var(--suave);border-radius:16px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.saipor b{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--grena)}
+
+.vazio{border:1px dashed var(--borda);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.vazio p{margin:0;color:var(--apagado);line-height:1.5}
+
+.abas{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linha);z-index:5;padding-bottom:env(safe-area-inset-bottom, 0px)}
+.abas-in{max-width:480px;margin:0 auto;display:flex;justify-content:space-around;padding:8px max(8px, env(safe-area-inset-left, 0px)) 10px max(8px, env(safe-area-inset-right, 0px))}
+.aba{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:84px;min-height:48px;border:0;background:none;color:var(--apagado);font-size:11px;font-weight:500}
+.aba[aria-current="page"]{color:var(--grena);font-weight:600}
+
+.toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:500;z-index:10;max-width:calc(100% - 40px)}
+.login{min-height:calc(100vh - 80px);justify-content:center}
+.marca{display:flex;flex-direction:column;align-items:center;gap:4px;padding-bottom:28px}
+.marca .bv{position:relative;width:92px;height:86px}
+.marca .bv span{position:absolute;font-family:var(--serif);font-weight:500;line-height:1}
+.marca .bv .b{left:6px;top:-6px;font-size:92px;color:var(--grena)}
+.marca .bv .v{left:36px;top:10px;font-size:82px;color:#B4727D}
+.marca .nome{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--grena);line-height:1.1}
+.marca .linha2{font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--apagado)}
+.form{display:flex;flex-direction:column;gap:16px}
+.sair{display:flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--borda);background:#fff;color:var(--grena);font-weight:600;font-size:14px;flex-shrink:0}
+.sair:hover{border-color:var(--grena)}
+.atalho{display:flex;align-items:center;gap:14px;min-height:64px;padding:12px 18px;border-radius:16px;border:1.5px solid var(--grena);background:#fff;color:var(--grena);width:100%;text-align:left}
+.atalho strong{display:block;font-size:16px}
+.atalho small{display:block;font-size:13px;color:var(--apagado)}
+textarea.entrada{height:auto;min-height:140px;padding:12px 14px;line-height:1.5;resize:vertical;font-size:16px}
+.pc-linha{display:flex;align-items:center;gap:10px;min-height:60px;border-bottom:1px solid var(--linha);padding:6px 0}
+.pc-linha strong{display:block;font-size:14px;font-weight:600}
+.pc-linha small{display:block;font-size:12px;color:var(--apagado)}
+.pct{display:flex;align-items:center;gap:4px;height:42px;border:1px solid var(--borda);border-radius:10px;padding:0 8px;background:#fff;flex-shrink:0}
+.pct:focus-within{border-color:var(--grena)}
+.pct input{width:52px;border:0;outline:none;text-align:right;font-size:15px;background:transparent}
+.pct span{font-size:13px;color:var(--apagado)}
+.pc-val{width:80px;text-align:right;font-size:14px;flex-shrink:0}
+.seg.mini-seg{height:40px;padding:3px}
+.seg.mini-seg button{font-size:13px;padding:0 10px}
+.cp-linha{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--linha)}
+.cp-linha .dir{text-align:right;font-size:13px;color:var(--apagado);flex-shrink:0}
+.cp-linha .dir b{display:block;color:var(--tinta);font-size:14px;font-weight:600}
+.nota{background:var(--suave);border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.55;color:var(--apagado)}
+.nota strong{color:var(--tinta)}
+.faixa{background:var(--rosado);color:var(--grena);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:500}
+@media (prefers-reduced-motion: no-preference){.toast{animation:sobe .2s ease-out}@keyframes sobe{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}}
+</style>
+</head>
+<body>
+<main id="view" class="app" aria-live="polite">
+  <div class="row between">
+    <div class="stack" style="gap:2px"><div class="sub">Carregando</div><h1>Bruna Vieira</h1></div>
+    <div class="mono" aria-hidden="true">BV</div>
+  </div>
+  <div class="vazio"><p>Buscando suas receitas e ingredientes.</p></div>
+</main>
+<nav class="abas" id="abas" aria-label="Seções">
+  <div class="abas-in">
+    <button class="aba" data-go="inicio" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Início</button>
+    <button class="aba" data-go="receitas" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/></svg>Receitas</button>
+    <button class="aba" data-go="ingredientes" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10"/><path d="M8 3v3L6 9v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9l-2-3V3"/><path d="M6 13h12"/></svg>Ingredientes</button>
+  </div>
+</nav>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+var sb = null, uid = null;
+var S = { logado:false, authPronto:false, authModo:'entrar', authMsg:'', authEmail:'', ocupado:false, loginErro:'', ings:{}, recs:{}, carregou:{i:false,r:false}, semBanco:false, view:'inicio', filtro:'todas', busca:'', buscaIng:'', draft:null, ingDraft:null, ingOrig:null, ingVolta:null, confirma:false, erro:'', cfg:null, cfgDraft:null, compraQtd:100 };
+var view = document.getElementById('view');
+var abas = document.getElementById('abas');
+
+var ICON_MAIS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+var ICON_SETA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--grena);flex-shrink:0"><path d="m9 6 6 6-6 6"/></svg>';
+var ICON_VOLTA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>';
+var ICON_BUSCA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+var ICON_X = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function brl(v){ return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function num(s){
+  if (typeof s === 'number') return isFinite(s) ? s : null;
+  var t = String(s == null ? '' : s).trim().replace(/\s/g,'').replace(/^R\$/,'');
+  if (!t) return null;
+  if (t.indexOf(',') >= 0) t = t.replace(/\./g,'').replace(',','.');
+  else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g,'');
+  var n = parseFloat(t);
+  return isFinite(n) ? n : null;
+}
+function campoNum(v, dec){ return v == null ? '' : v.toLocaleString('pt-BR',{useGrouping:false, minimumFractionDigits: dec||0, maximumFractionDigits: dec==null?3:dec}); }
+function dias(iso){ var t = Date.parse(iso||''); return isFinite(t) ? Math.max(0, Math.floor((Date.now()-t)/86400000)) : null; }
+function quando(iso){ var d = dias(iso); if (d == null) return ''; if (d === 0) return 'hoje'; if (d === 1) return 'ontem'; return 'há ' + d + ' dias'; }
+function unidadeTxt(un){ return un === 'un' ? 'un' : un === 'ml' ? 'ml' : 'g'; }
+function porUnidade(i){
+  if (!i || i.preco == null || !(i.emb > 0)) return null;
+  var u = i.preco / i.emb;
+  if (i.un === 'un') return brl(u) + '/un';
+  return brl(u*1000) + (i.un === 'ml' ? '/litro' : '/kg');
+}
+function custoUnit(i){ return (i && i.preco != null && i.emb > 0) ? i.preco / i.emb : null; }
+function ordenaNome(a,b){ return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'); }
+function lista(obj){ return Object.keys(obj).map(function(k){ return obj[k]; }); }
+
+/* Precificação: cada percentual incide sobre o custo de ingredientes por unidade (sistemática do curso).
+   Mão de obra pode ser % (pela dificuldade) ou por hora. A taxa de venda incide sobre o preço final. */
+var PADRAO = { fixos:15, utens:7, simples:40, medio:50, complexo:60, lucro:100, taxa:0, valorHora:null };
+var DIFS = [{ id:'simples', label:'Simples' }, { id:'medio', label:'Médio' }, { id:'complexo', label:'Complexo' }];
+var CATS_BASE = ['Doce fino','Bombom','Trufa','Brigadeiro gourmet','Bolo','Torta','Sobremesa'];
+function CFG(){ var c = S.cfg || {}, o = {}; for (var k in PADRAO) o[k] = c[k] != null ? c[k] : PADRAO[k]; return o; }
+function difLabel(id){ for (var i = 0; i < DIFS.length; i++) if (DIFS[i].id === id) return DIFS[i].label; return 'Médio'; }
+function pctsDe(r){
+  var c = CFG(), o = r.pcts || {}, dif = r.dificuldade || 'medio';
+  var pega = function(k, padrao){ return o[k] != null ? o[k] : padrao; };
+  return { fixos: pega('fixos', c.fixos), utens: pega('utens', c.utens), mao: pega('mao', c[dif]), lucro: pega('lucro', c.lucro), taxa: pega('taxa', c.taxa), valorHora: pega('valorHora', c.valorHora) };
+}
+function calc(r){
+  var total = 0, faltando = [];
+  var itens = r.itens || [];
+  itens.forEach(function(it){
+    var ing = S.ings[it.ingId];
+    var u = custoUnit(ing);
+    if (u == null || it.qtd == null) faltando.push(ing ? ing.nome : 'ingrediente removido');
+    else total += u * it.qtd;
+  });
+  var rende = r.rende > 0 ? r.rende : null;
+  var ok = itens.length > 0 && faltando.length === 0 && rende;
+  var p = pctsDe(r);
+  var res = { total: total, un: ok ? total / rende : null, preco: null, faltando: faltando, vazio: itens.length === 0, ok: !!ok, p: p, v: null, falta: '', venda: null, lucro: null };
+  if (!ok) return res;
+  var C = res.un, maoV;
+  if (r.maoModo === 'hora'){
+    if (!(p.valorHora > 0) || !(r.tempoMin > 0)){ res.falta = 'Falta o tempo ou o valor da hora'; return res; }
+    maoV = p.valorHora * (r.tempoMin / 60) / rende;
+  } else maoV = C * (p.mao || 0) / 100;
+  var v = { ing: C, fixos: C * (p.fixos || 0) / 100, utens: C * (p.utens || 0) / 100, mao: maoV, lucro: C * (p.lucro || 0) / 100 };
+  var base = v.ing + v.fixos + v.utens + v.mao + v.lucro;
+  var t = Math.min(Math.max(p.taxa || 0, 0), 90) / 100;
+  var preco = Math.round(base / (1 - t) * 100) / 100;
+  v.taxa = preco * t;
+  res.v = v; res.preco = preco;
+  res.custoReal = v.ing + v.fixos + v.utens + v.mao;
+  res.lucroUn = preco - res.custoReal - v.taxa;
+  res.margem = preco > 0 ? res.lucroUn / preco : null;
+  res.mult = C > 0 ? preco / C : null;
+  res.venda = preco * rende; res.lucro = res.lucroUn * rende;
+  return res;
+}
+function motivoSemPreco(r, c){
+  if (c.vazio) return 'Nenhum ingrediente ainda';
+  if (!(r.rende > 0)) return 'Falta o rendimento';
+  if (c.faltando.length === 1) return 'Falta preço: ' + c.faltando[0];
+  if (c.faltando.length > 1) return 'Falta preço de ' + c.faltando.length + ' ingredientes';
+  if (c.falta) return c.falta;
+  return 'Confira os percentuais';
+}
+function pctTxt(x){ return x == null ? '—' : (x * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%'; }
+function set(id, txt){ var el = document.getElementById(id); if (el) el.textContent = txt; }
+function fmtQtd(v, un){
+  if (v == null) return '—';
+  if (un === 'un') return (Math.round(v * 10) / 10).toLocaleString('pt-BR') + ' un';
+  if (v >= 1000) return (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + (un === 'ml' ? ' L' : ' kg');
+  return (Math.round(v * 10) / 10).toLocaleString('pt-BR') + ' ' + (un === 'ml' ? 'ml' : 'g');
+}
+
+var toastTimer = null;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.hidden = true; }, 2400);
+}
+
+/* ---------- acesso (login do Supabase) ---------- */
+var recuperando = /type=recovery/.test(location.hash || '');
+function traduzErro(e){
+  var m = String((e && (e.message || e.error_description || e.msg)) || '').toLowerCase();
+  if (m.indexOf('invalid login') >= 0) return 'E-mail ou senha não conferem. Confira e tente de novo.';
+  if (m.indexOf('not confirmed') >= 0) return 'Confirme seu e-mail pelo link que enviamos antes de entrar.';
+  if (m.indexOf('already registered') >= 0 || m.indexOf('already been registered') >= 0) return 'Este e-mail já tem conta. Use "Entrar".';
+  if (m.indexOf('signup') >= 0 && (m.indexOf('disabled') >= 0 || m.indexOf('not allowed') >= 0)) return 'O cadastro de novas contas está fechado.';
+  if (m.indexOf('rate limit') >= 0 || m.indexOf('too many') >= 0) return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.';
+  if (m.indexOf('password') >= 0 && (m.indexOf('6') >= 0 || m.indexOf('short') >= 0 || m.indexOf('weak') >= 0)) return 'Use uma senha mais forte, com pelo menos 6 caracteres.';
+  if (m.indexOf('same') >= 0 && m.indexOf('password') >= 0) return 'A nova senha precisa ser diferente da anterior.';
+  if (m.indexOf('fetch') >= 0 || m.indexOf('network') >= 0) return 'Sem conexão com o servidor. Confira a internet e tente de novo.';
+  return 'Não deu certo agora. Tente de novo em instantes.';
+}
+function vLogin(){
+  var marca = '<div class="marca"><div class="bv" aria-hidden="true"><span class="b">B</span><span class="v">V</span></div><div class="nome">Bruna Vieira</div><div class="linha2">Doces finos</div></div>';
+  var out = '<div class="stack login">' + marca;
+  if (!sb && S.authPronto) return out + '<div class="faixa">O app ainda não está configurado. Falta colocar a chave do Supabase no arquivo config.js.</div></div>';
+  if (!S.authPronto) return out + '<p class="sub" style="text-align:center">Carregando</p></div>';
+  var erro = S.loginErro ? '<div class="erro" role="alert">' + esc(S.loginErro) + '</div>' : '';
+  var aviso = S.authMsg ? '<div class="faixa" role="status">' + esc(S.authMsg) + '</div>' : '';
+  var campoEmail = '<label class="campo">E-mail<input id="l-email" class="entrada" type="email" autocomplete="username" placeholder="seu@email.com" value="' + esc(S.authEmail) + '"></label>';
+  var oc = S.ocupado ? ' disabled' : '';
+  if (S.authModo === 'criar'){
+    out += '<form class="form" id="f-criar" novalidate><h2 style="text-align:center">Criar conta</h2>' + erro + campoEmail +
+      '<label class="campo">Senha<input id="l-senha" class="entrada" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></label>' +
+      '<label class="campo">Repita a senha<input id="l-senha2" class="entrada" type="password" autocomplete="new-password"></label>' +
+      '<button class="btn" type="submit"' + oc + '>' + (S.ocupado ? 'Criando…' : 'Criar conta') + '</button>' +
+      '<button class="link" type="button" id="ir-entrar" style="align-self:center">Já tenho conta</button></form>';
+  } else if (S.authModo === 'esqueci'){
+    out += '<form class="form" id="f-esqueci" novalidate><h2 style="text-align:center">Redefinir senha</h2><p class="sub" style="margin:0;text-align:center">Enviamos um link para você criar uma senha nova.</p>' + erro + campoEmail +
+      '<button class="btn" type="submit"' + oc + '>' + (S.ocupado ? 'Enviando…' : 'Enviar link') + '</button>' +
+      '<button class="link" type="button" id="ir-entrar" style="align-self:center">Voltar para entrar</button></form>';
+  } else if (S.authModo === 'nova-senha'){
+    out += '<form class="form" id="f-nova" novalidate><h2 style="text-align:center">Nova senha</h2>' + erro +
+      '<label class="campo">Nova senha<input id="l-senha" class="entrada" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres"></label>' +
+      '<label class="campo">Repita a senha<input id="l-senha2" class="entrada" type="password" autocomplete="new-password"></label>' +
+      '<button class="btn" type="submit"' + oc + '>' + (S.ocupado ? 'Salvando…' : 'Salvar nova senha') + '</button></form>';
+  } else {
+    out += '<form class="form" id="f-entrar" novalidate>' + aviso + erro + campoEmail +
+      '<label class="campo">Senha<input id="l-senha" class="entrada" type="password" autocomplete="current-password" placeholder="Sua senha"></label>' +
+      '<button class="btn" type="submit"' + oc + '>' + (S.ocupado ? 'Entrando…' : 'Entrar') + '</button>' +
+      '<button class="link" type="button" id="ir-esqueci" style="align-self:center">Esqueci minha senha</button>' +
+      '<p class="sub" style="text-align:center;margin:0">Primeiro acesso? <button class="link" type="button" id="ir-criar" style="padding:0;min-height:auto">Criar conta</button></p></form>';
+  }
+  return out + '</div>';
+}
+function valor(id){ var el = document.getElementById(id); return el ? el.value : ''; }
+function erroLogin(msg, foco){ S.ocupado = false; S.loginErro = msg; render(); var el = document.getElementById(foco || 'l-email'); if (el) el.focus(); }
+function pegaEmail(){ var e = valor('l-email').trim().toLowerCase(); S.authEmail = e; return e; }
+function ocupar(){ S.ocupado = true; S.loginErro = ''; S.authMsg = ''; render(); }
+function criarConta(){
+  var email = pegaEmail(), s1 = valor('l-senha'), s2 = valor('l-senha2');
+  if (!/^\S+@\S+\.\S+$/.test(email)) return erroLogin('Digite um e-mail válido.', 'l-email');
+  if (s1.length < 6) return erroLogin('A senha precisa ter pelo menos 6 caracteres.', 'l-senha');
+  if (s1 !== s2) return erroLogin('As duas senhas não estão iguais.', 'l-senha2');
+  ocupar();
+  sb.auth.signUp({ email: email, password: s1, options: { emailRedirectTo: location.origin + location.pathname } }).then(function(r){
+    if (r.error) return erroLogin(traduzErro(r.error), 'l-email');
+    S.ocupado = false;
+    if (!r.data || !r.data.session){ S.authModo = 'entrar'; S.authMsg = 'Enviamos um link de confirmação para ' + email + '. Abra o e-mail, confirme e depois entre aqui.'; render(); }
+  }).catch(function(e){ erroLogin(traduzErro(e)); });
+}
+function entrar(){
+  var email = pegaEmail(), senha = valor('l-senha');
+  if (!email || !senha) return erroLogin('Preencha e-mail e senha.', !email ? 'l-email' : 'l-senha');
+  ocupar();
+  sb.auth.signInWithPassword({ email: email, password: senha }).then(function(r){
+    if (r.error) return erroLogin(traduzErro(r.error), 'l-senha');
+    S.ocupado = false;
+  }).catch(function(e){ erroLogin(traduzErro(e)); });
+}
+function enviarReset(){
+  var email = pegaEmail();
+  if (!/^\S+@\S+\.\S+$/.test(email)) return erroLogin('Digite um e-mail válido.', 'l-email');
+  ocupar();
+  sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }).then(function(r){
+    if (r.error) return erroLogin(traduzErro(r.error), 'l-email');
+    S.ocupado = false; S.authModo = 'entrar'; S.authMsg = 'Se esse e-mail tiver conta, chega um link para criar uma senha nova. Confira também o spam.'; render();
+  }).catch(function(e){ erroLogin(traduzErro(e)); });
+}
+function salvarNovaSenha(){
+  var s1 = valor('l-senha'), s2 = valor('l-senha2');
+  if (s1.length < 6) return erroLogin('A senha precisa ter pelo menos 6 caracteres.', 'l-senha');
+  if (s1 !== s2) return erroLogin('As duas senhas não estão iguais.', 'l-senha2');
+  ocupar();
+  sb.auth.updateUser({ password: s1 }).then(function(r){
+    if (r.error) return erroLogin(traduzErro(r.error), 'l-senha');
+    S.ocupado = false; recuperando = false;
+    try { history.replaceState(null, '', location.pathname); } catch(e){}
+    toast('Senha alterada');
+    sb.auth.getSession().then(function(x){ var ss = x.data && x.data.session; if (ss) entrarNoApp(ss.user); else { S.authModo = 'entrar'; render(); } });
+  }).catch(function(e){ erroLogin(traduzErro(e)); });
+}
+function entrarNoApp(user){
+  uid = user.id; S.logado = true; S.authPronto = true; S.authModo = 'entrar'; S.authMsg = ''; S.loginErro = '';
+  S.view = 'inicio'; S.carregou = { i:false, r:false };
+  render(); window.scrollTo(0,0); carregar();
+}
+function saiuDoApp(){
+  uid = null; S.logado = false; S.ings = {}; S.recs = {}; S.cfg = null; S.draft = null; S.ingDraft = null; S.cfgDraft = null;
+  S.view = 'inicio'; S.authModo = 'entrar'; render(); window.scrollTo(0,0);
+}
+function sair(){
+  saiuDoApp();
+  if (sb) sb.auth.signOut().catch(function(){});
+}
+
+/* ---------- telas ---------- */
+function vInicio(){
+  var recs = lista(S.recs), ings = lista(S.ings);
+  var h = new Date().getHours();
+  var saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  var data = new Date().toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'});
+  data = data.charAt(0).toUpperCase() + data.slice(1);
+  var out = '<div class="row between" style="align-items:flex-start"><div class="stack" style="gap:2px"><div class="sub">' + esc(data) + '</div><h1>' + saud + ', Bruna</h1></div><button class="sair" type="button" id="sair"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h11"/></svg>Sair</button></div>';
+  if (S.semBanco) out += '<div class="faixa">Não consegui conectar ao armazenamento agora. O que você cadastrar pode não ficar salvo. Tente abrir de novo daqui a pouco.</div>';
+  if (!S.carregou.i || !S.carregou.r) return out + '<div class="vazio"><p>Buscando suas receitas e ingredientes.</p></div>';
+  if (!recs.length && !ings.length){
+    return out + '<div class="vazio"><h2>Primeiros passos</h2><p>Cadastre os ingredientes com o preço que você pagou e o tamanho da embalagem. Depois monte a receita e o app calcula o custo e o preço de venda.</p>' +
+      '<button class="btn" type="button" data-new="ing">Cadastrar primeiro ingrediente</button>' +
+      '<button class="link" type="button" id="exemplo">Ver um exemplo pronto (brigadeiro)</button></div>';
+  }
+  var cs = recs.map(function(r){ return { r:r, c:calc(r) }; });
+  var com = cs.filter(function(x){ return x.c.preco != null; });
+  var sem = cs.filter(function(x){ return x.c.preco == null; });
+  var velhos = ings.filter(function(i){ return i.preco != null && dias(i.atualizado) > 60; });
+  var semPreco = ings.filter(function(i){ return i.preco == null; });
+  out += '<button class="atalho" type="button" data-new="rec"><span class="grow"><strong>Cadastrar receita</strong><small>Ingredientes, modo de preparo e preço</small></span>' + ICON_MAIS + '</button>';
+  out += '<div class="resumo" role="group" aria-label="Resumo"><div><b>' + recs.length + '</b><span>Receitas</span></div><div><b>' + com.length + '</b><span>Com preço</span></div><div><b>' + sem.length + '</b><span>Sem preço</span></div></div>';
+  var avisos = '';
+  if (sem.length) avisos += aviso('receitas', 'sem', sem.length === 1 ? '1 receita sem preço' : sem.length + ' receitas sem preço', sem.map(function(x){ return x.r.nome; }).join(', '));
+  if (semPreco.length) avisos += aviso('ingredientes', '', semPreco.length === 1 ? '1 ingrediente sem preço' : semPreco.length + ' ingredientes sem preço', semPreco.map(function(i){ return i.nome; }).join(', '));
+  if (velhos.length) avisos += aviso('ingredientes', '', velhos.length === 1 ? '1 preço desatualizado' : velhos.length + ' preços desatualizados', 'Sem revisão há mais de 60 dias');
+  if (avisos) out += '<section class="stack"><h2>Precisa de você</h2>' + avisos + '</section>';
+  var cf = CFG();
+  out += '<button class="item" type="button" id="abrir-padroes" style="border-top:1px solid var(--linha)"><span class="grow stack" style="gap:3px"><span class="nome">Padrões de preço</span><span class="info">Fixos ' + campoNum(cf.fixos) + '% · Embalagem ' + campoNum(cf.utens) + '% · Lucro ' + campoNum(cf.lucro) + '%' + (cf.taxa ? ' · Taxa ' + campoNum(cf.taxa) + '%' : '') + '</span></span>' + ICON_SETA + '</button>';
+  var recentes = recs.slice().sort(function(a,b){ return String(b.atualizado||'').localeCompare(String(a.atualizado||'')); }).slice(0,3);
+  if (recentes.length){
+    out += '<section class="stack" style="gap:0"><div class="row between"><h2>Mexidas recentemente</h2><button class="link" type="button" data-go="receitas">Ver todas</button></div>' + recentes.map(itemReceita).join('') + '</section>';
+  }
+  return out;
+}
+function aviso(go, filtro, titulo, detalhe){
+  return '<button class="aviso" type="button" data-go="' + go + '"' + (filtro ? ' data-filtro="' + filtro + '"' : '') + '><span class="ponto" aria-hidden="true"></span><span class="grow"><strong>' + esc(titulo) + '</strong><small>' + esc(detalhe) + '</small></span>' + ICON_SETA + '</button>';
+}
+function itemReceita(r){
+  var c = calc(r);
+  var info = (r.categoria ? r.categoria + ' · ' : '') + (r.rende > 0 ? 'Rende ' + campoNum(r.rende) + ' un' : 'Sem rendimento') + ' · ' + (c.preco != null ? 'custo ' + brl(c.un) + '/un' : motivoSemPreco(r, c));
+  var dir = c.preco != null ? '<span class="stack" style="gap:0;align-items:flex-end"><span class="preco">' + brl(c.preco) + '</span><span class="sub" style="font-size:11px">por unidade</span></span>' : '<span class="tag">Precificar</span>';
+  return '<button class="item" type="button" data-rec="' + esc(r.id) + '"><span class="grow stack" style="gap:3px"><span class="nome">' + esc(r.nome) + '</span><span class="info">' + esc(info) + '</span></span>' + dir + '</button>';
+}
+
+function vReceitas(){
+  var out = '<div class="row between"><h1>Receitas</h1><button class="fab" type="button" data-new="rec" aria-label="Nova receita">' + ICON_MAIS + '</button></div>';
+  out += '<label class="busca">' + ICON_BUSCA + '<input id="busca" type="search" placeholder="Buscar receita" aria-label="Buscar receita" value="' + esc(S.busca) + '"></label>';
+  var recs = lista(S.recs);
+  var nCom = recs.filter(function(r){ return calc(r).preco != null; }).length;
+  out += '<div class="chips" role="group" aria-label="Filtrar">' +
+    chip('todas', 'Todas', recs.length) + chip('com', 'Com preço', nCom) + chip('sem', 'Sem preço', recs.length - nCom) + '</div>';
+  out += '<div id="lista-rec">' + listaReceitas() + '</div>';
+  return out;
+}
+function chip(id, label, n){ return '<button class="chip" type="button" data-filtro="' + id + '" aria-pressed="' + (S.filtro === id) + '">' + label + ' <span style="opacity:.75">' + n + '</span></button>'; }
+function listaReceitas(){
+  var recs = lista(S.recs).sort(ordenaNome);
+  if (!recs.length) return '<div class="vazio"><p>Nenhuma receita cadastrada. Toque no + para montar a primeira.</p></div>';
+  var b = S.busca.trim().toLowerCase();
+  var f = recs.filter(function(r){
+    var c = calc(r);
+    if (S.filtro === 'com' && c.preco == null) return false;
+    if (S.filtro === 'sem' && c.preco != null) return false;
+    return !b || String(r.nome||'').toLowerCase().indexOf(b) >= 0;
+  });
+  if (!f.length) return '<div class="vazio"><p>Nada encontrado com esse filtro.</p></div>';
+  return f.map(itemReceita).join('');
+}
+
+function vIngredientes(){
+  var out = '<div class="row between"><div class="stack" style="gap:2px"><h1>Ingredientes</h1><span class="sub">Mudou o preço aqui, muda em todas as receitas.</span></div><button class="fab" type="button" data-new="ing" aria-label="Novo ingrediente">' + ICON_MAIS + '</button></div>';
+  out += '<label class="busca">' + ICON_BUSCA + '<input id="busca-ing" type="search" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente" value="' + esc(S.buscaIng) + '"></label>';
+  out += '<div id="lista-ing">' + listaIngredientes() + '</div>';
+  return out;
+}
+function listaIngredientes(){
+  var ings = lista(S.ings);
+  if (!ings.length) return '<div class="vazio"><p>Nenhum ingrediente ainda. Cadastre com o preço pago e o tamanho da embalagem.</p><button class="btn" type="button" data-new="ing">Cadastrar ingrediente</button></div>';
+  var b = S.buscaIng.trim().toLowerCase();
+  // primeiro o que precisa de atenção, depois por nome
+  var peso = function(i){ return i.preco == null ? 0 : dias(i.atualizado) > 60 ? 1 : 2; };
+  var f = ings.filter(function(i){ return !b || String(i.nome||'').toLowerCase().indexOf(b) >= 0; })
+    .sort(function(a,c){ return peso(a) - peso(c) || ordenaNome(a,c); });
+  if (!f.length) return '<div class="vazio"><p>Nenhum ingrediente com esse nome.</p></div>';
+  return f.map(function(i){
+    var emb = campoNum(i.emb) + ' ' + unidadeTxt(i.un);
+    var info = i.preco == null ? 'Embalagem de ' + emb : emb + ' por ' + brl(i.preco);
+    var d = dias(i.atualizado);
+    var marca = i.preco == null ? '<span class="tag">Falta o preço</span>' : d > 60 ? '<span class="tag">Há ' + d + ' dias</span>' : '<span class="sub" style="font-size:11px">' + esc(quando(i.atualizado)) + '</span>';
+    return '<button class="item" type="button" data-ing="' + esc(i.id) + '"><span class="grow stack" style="gap:3px"><span class="nome">' + esc(i.nome) + '</span><span class="info">' + esc(info) + '</span></span><span class="stack" style="gap:3px;align-items:flex-end"><span class="num" style="font-weight:600">' + (porUnidade(i) || '—') + '</span>' + marca + '</span></button>';
+  }).join('');
+}
+
+function vReceita(){
+  var d = S.draft;
+  var usados = {}; d.itens.forEach(function(it){ usados[it.ingId] = 1; });
+  var disp = lista(S.ings).filter(function(i){ return !usados[i.id]; }).sort(ordenaNome);
+  var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Receitas</button>' + (d.id ? '<button class="btn-perigo" type="button" id="excluir">Excluir</button>' : '') + '</div>';
+  if (S.confirma) out += '<div class="confirma"><strong>Excluir esta receita?</strong><span class="sub">Os ingredientes continuam cadastrados.</span><div class="row"><button type="button" id="sim-excluir" style="background:var(--grena);color:#fff">Excluir</button><button type="button" id="nao-excluir" style="background:#fff">Cancelar</button></div></div>';
+  out += '<input id="r-nome" class="titulo-input" placeholder="Nome da receita" aria-label="Nome da receita" value="' + esc(d.nome) + '">';
+  if (S.erro) out += '<div class="erro">' + esc(S.erro) + '</div>';
+  var cats = CATS_BASE.slice();
+  lista(S.recs).forEach(function(r){ if (r.categoria && cats.indexOf(r.categoria) < 0) cats.push(r.categoria); });
+  out += '<section class="stack"><h2>Informações da receita</h2>' +
+    '<label class="campo">Categoria<input id="r-cat" class="entrada" list="cats" placeholder="Ex.: Doce fino" value="' + esc(d.categoria) + '"></label><datalist id="cats">' + cats.map(function(c){ return '<option value="' + esc(c) + '"></option>'; }).join('') + '</datalist>' +
+    '<div class="caixa"><span class="sub" style="font-size:14px">Rende</span><div class="row" style="gap:4px"><button class="passo" type="button" data-passo="-1" aria-label="Diminuir rendimento">−</button><input id="r-rende" class="passo-val" inputmode="decimal" aria-label="Rendimento em unidades" value="' + esc(campoNum(d.rende)) + '"><span class="sub">un</span><button class="passo" type="button" data-passo="1" aria-label="Aumentar rendimento">+</button></div></div>' +
+    '<label class="campo">Durabilidade<span class="row" style="gap:8px"><input id="r-durab" class="entrada" style="width:110px" inputmode="numeric" placeholder="Ex.: 3" value="' + esc(campoNum(d.durab)) + '"><span class="sub">dias, aproximadamente</span></span></label>' +
+    '<div class="stack" style="gap:8px"><span style="font-size:13px;font-weight:500">Dificuldade <span class="sub">(ajusta a mão de obra)</span></span><div class="margens" style="grid-template-columns:repeat(3,minmax(0,1fr))" role="group" aria-label="Dificuldade">' +
+    DIFS.map(function(x){ return '<button class="chip" type="button" data-dif="' + x.id + '" aria-pressed="' + ((d.dificuldade || 'medio') === x.id) + '">' + x.label + '</button>'; }).join('') + '</div></div></section>';
+  out += '<section class="stack" style="gap:0"><div class="row between" style="padding-bottom:4px"><h2>Ingredientes</h2><h2>Custo</h2></div>';
+  if (!d.itens.length) out += '<p class="sub" style="margin:8px 0 12px">Adicione os ingredientes e a quantidade usada nesta receita.</p>';
+  d.itens.forEach(function(it, idx){
+    var ing = S.ings[it.ingId];
+    var nome = ing ? ing.nome : 'Ingrediente removido';
+    var semP = !ing || ing.preco == null;
+    out += '<div class="ing-linha"><span class="grow stack" style="gap:2px"><span style="font-size:14px">' + esc(nome) + '</span>' + (semP ? '<button type="button" class="tag" style="border:0;align-self:flex-start" data-ing="' + esc(it.ingId) + '" data-volta="1">Falta o preço</button>' : '') + '</span>' +
+      '<input class="qtd" inputmode="decimal" data-q="' + idx + '" aria-label="Quantidade de ' + esc(nome) + '" placeholder="0" value="' + esc(campoNum(it.qtd)) + '"><span class="un">' + unidadeTxt(ing && ing.un) + '</span>' +
+      '<span class="custo num" id="c-' + idx + '">—</span><button class="x" type="button" data-rm="' + idx + '" aria-label="Tirar ' + esc(nome) + '">' + ICON_X + '</button></div>';
+  });
+  out += '<div class="add" style="margin-top:12px"><select id="add-ing" aria-label="Escolher ingrediente"><option value="">Adicionar ingrediente…</option>' +
+    disp.map(function(i){ return '<option value="' + esc(i.id) + '">' + esc(i.nome) + '</option>'; }).join('') +
+    '<option value="__novo">+ Cadastrar ingrediente novo</option></select><button class="btn2" type="button" id="add-btn">Adicionar</button></div></section>';
+  out += '<section class="stack"><h2>Modo de preparo</h2>' +
+    '<label class="campo">Tempo de preparo<input id="r-tempo" class="entrada" placeholder="Ex.: 40 min + 2 h de geladeira" value="' + esc(d.tempo) + '"></label>' +
+    '<label class="campo">Passo a passo<textarea id="r-preparo" class="entrada" rows="6" placeholder="1. Leve ao fogo o leite condensado…">' + esc(d.preparo) + '</textarea></label>' +
+    '<label class="campo">Observações<textarea id="r-obs" class="entrada" rows="3" style="min-height:90px" placeholder="Ponto, validade, como armazenar…">' + esc(d.obs) + '</textarea></label></section>';
+  var p = pctsDe(d), hora = d.maoModo === 'hora';
+  out += '<section class="stack" style="gap:0"><div class="row between" style="padding-bottom:4px"><h2>Precificação</h2><button class="link" type="button" id="padrao-rec" style="padding:0;min-height:36px;font-size:13px">Voltar aos padrões</button></div>';
+  out += '<div class="pc-linha"><span class="grow"><strong>Ingredientes</strong><small id="v-ing-total">Custo por unidade</small></span><span class="num pc-val" id="v-ing">—</span></div>';
+  out += linhaPct('fixos', 'Custos fixos', 'Aluguel, luz, água, gás', p.fixos);
+  out += linhaPct('utens', 'Utensílios e embalagem', 'Forminhas, caixas, fitas', p.utens);
+  out += '<div class="pc-linha"><span class="grow"><strong>Mão de obra</strong><small>Seu tempo de produção</small></span><div class="seg mini-seg" role="group" aria-label="Como calcular a mão de obra"><button type="button" data-modo="pct" aria-pressed="' + !hora + '">% do custo</button><button type="button" data-modo="hora" aria-pressed="' + hora + '">Por hora</button></div></div>';
+  if (hora){
+    out += '<div class="pc-linha"><span class="grow"><small>Tempo para fazer a receita inteira</small></span><span class="pct"><input inputmode="decimal" data-p="tempoMin" aria-label="Tempo em minutos" placeholder="0" value="' + esc(campoNum(d.tempoMin)) + '"><span>min</span></span><span class="pc-val"></span></div>';
+    out += '<div class="pc-linha"><span class="grow"><small>Quanto vale sua hora</small></span><span class="pct"><span>R$</span><input inputmode="decimal" data-p="valorHora" aria-label="Valor da hora em reais" placeholder="0" value="' + esc(campoNum(p.valorHora, 2)) + '"></span><span class="num pc-val" id="v-mao">—</span></div>';
+  } else {
+    out += '<div class="pc-linha"><span class="grow"><small>Nível ' + difLabel(d.dificuldade) + '</small></span><span class="pct"><input inputmode="decimal" data-p="mao" aria-label="Mão de obra em %" value="' + esc(campoNum(p.mao)) + '"><span>%</span></span><span class="num pc-val" id="v-mao">—</span></div>';
+  }
+  out += linhaPct('lucro', 'Lucro', 'Retorno desejado', p.lucro);
+  out += linhaPct('taxa', 'Taxa de venda', 'Cartão, app de entrega, link', p.taxa);
+  out += '</section>';
+  out += '<div class="cards2"><div class="mini"><span>Custo real por unidade</span><b class="num" id="s-real">—</b></div><div class="mini"><span>Lucro por unidade</span><b class="num" id="s-lucro">—</b></div><div class="mini"><span>Margem real</span><b class="num" id="s-margem">—</b></div><div class="mini"><span>Multiplicador</span><b class="num" id="s-mult">—</b></div></div>';
+  out += '<button class="btn2" type="button" id="compras" style="width:100%">Lista de compras</button>';
+  return out;
+}
+function linhaPct(k, titulo, sub, val){
+  return '<div class="pc-linha"><span class="grow"><strong>' + titulo + '</strong><small>' + sub + '</small></span><span class="pct"><input inputmode="decimal" data-p="' + k + '" aria-label="' + titulo + ' em %" value="' + esc(campoNum(val)) + '"><span>%</span></span><span class="num pc-val" id="v-' + k + '">—</span></div>';
+}
+
+function vCompras(){
+  var d = S.draft;
+  var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Voltar à receita</button></div>';
+  out += '<div class="stack" style="gap:2px"><h1>Lista de compras</h1><span class="sub">' + esc(d.nome || 'Receita sem nome') + '</span></div>';
+  out += '<div class="caixa"><span class="sub" style="font-size:14px">Preciso produzir</span><div class="row" style="gap:6px"><input id="compra-qtd" class="passo-val" style="width:90px;border:1px solid var(--borda);border-radius:10px;height:44px" inputmode="numeric" aria-label="Quantidade de doces" value="' + esc(campoNum(S.compraQtd)) + '"><span class="sub" style="padding-right:8px">doces</span></div></div>';
+  if (!(d.rende > 0) || !d.itens.length) return out + '<div class="vazio"><p>Preencha o rendimento e os ingredientes da receita primeiro.</p></div>';
+  out += '<p class="sub" id="cp-fator" style="margin:0"></p><div id="cp-lista"></div>';
+  out += '<div class="stack"><div class="mini"><span>Custo nos doces</span><b class="num" id="cp-receita">—</b><span id="cp-pordoce"></span></div><div class="cards2"><div class="mini"><span>Custo da compra</span><b class="num" id="cp-compra">—</b></div><div class="mini"><span>Sobra no estoque</span><b class="num" id="cp-sobra">—</b></div></div></div>';
+  out += '<div class="nota"><strong>Custo nos doces</strong> é o que entrou na produção e bate com a precificação. <strong>Custo da compra</strong> é o que você desembolsa hoje em embalagens inteiras. A diferença fica como sobra para a próxima produção.</div>';
+  return out;
+}
+function atualizaCompras(){
+  if (S.view !== 'compras' || !S.draft) return;
+  var d = S.draft, n = S.compraQtd, rende = d.rende;
+  var el = document.getElementById('cp-lista'); if (!el) return;
+  if (!(n > 0)){ el.innerHTML = '<p class="sub">Digite quantos doces você precisa.</p>'; set('cp-fator',''); set('cp-receita','—'); set('cp-pordoce',''); set('cp-compra','—'); set('cp-sobra','—'); return; }
+  var fator = n / rende, fornadas = Math.ceil(fator - 1e-9);
+  set('cp-fator', fator.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'x a receita (' + fornadas + (fornadas === 1 ? ' fornada' : ' fornadas') + ' de ' + campoNum(rende) + ' un)');
+  var totRec = 0, totCompra = 0, incompleto = false;
+  el.innerHTML = d.itens.map(function(it){
+    var ing = S.ings[it.ingId];
+    var nome = ing ? ing.nome : 'Ingrediente removido';
+    var un = ing && ing.un;
+    var precisa = it.qtd != null ? it.qtd * fator : null;
+    var comprar = '—', custos = 'sem preço';
+    if (ing && ing.emb > 0 && precisa != null){
+      var pac = Math.ceil(precisa / ing.emb - 1e-9);
+      comprar = pac + ' × ' + fmtQtd(ing.emb, un);
+      if (ing.preco != null){
+        var cr = precisa * ing.preco / ing.emb, cc = pac * ing.preco;
+        totRec += cr; totCompra += cc;
+        custos = brl(cr) + ' na receita · ' + brl(cc) + ' compra';
+      } else incompleto = true;
+    } else incompleto = true;
+    return '<div class="cp-linha"><span class="grow stack" style="gap:2px"><span style="font-size:15px;font-weight:500">' + esc(nome) + '</span><span class="sub">Usa ' + fmtQtd(precisa, un) + '</span></span><span class="dir"><b>Comprar ' + comprar + '</b>' + custos + '</span></div>';
+  }).join('');
+  set('cp-receita', brl(totRec) + (incompleto ? ' *' : ''));
+  set('cp-pordoce', brl(totRec / n) + ' por doce' + (incompleto ? ' · * faltam preços' : ''));
+  set('cp-compra', brl(totCompra));
+  set('cp-sobra', brl(Math.max(0, totCompra - totRec)));
+}
+
+function vPadroes(){
+  var c = S.cfgDraft;
+  var linha = function(k, titulo, sub, pre, pos){
+    return '<div class="pc-linha"><span class="grow"><strong>' + titulo + '</strong>' + (sub ? '<small>' + sub + '</small>' : '') + '</span><span class="pct">' + (pre ? '<span>' + pre + '</span>' : '') + '<input inputmode="decimal" data-cfg="' + k + '" aria-label="' + titulo + '" value="' + esc(campoNum(c[k], k === 'valorHora' ? 2 : null)) + '">' + (pos ? '<span>' + pos + '</span>' : '') + '</span></div>';
+  };
+  var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Início</button></div>';
+  out += '<div class="stack" style="gap:4px"><h1>Padrões de preço</h1><span class="sub">Valem para toda receita que não tiver um valor próprio. Os percentuais incidem sobre o custo dos ingredientes, e a taxa de venda incide sobre o preço final.</span></div>';
+  out += '<section class="stack" style="gap:0">' +
+    linha('fixos', 'Custos fixos', 'Aluguel, luz, água, gás', '', '%') +
+    linha('utens', 'Utensílios e embalagem', 'Forminhas, caixas, fitas', '', '%') +
+    linha('simples', 'Mão de obra · Simples', '', '', '%') +
+    linha('medio', 'Mão de obra · Médio', '', '', '%') +
+    linha('complexo', 'Mão de obra · Complexo', '', '', '%') +
+    linha('lucro', 'Lucro', 'Retorno desejado', '', '%') +
+    linha('taxa', 'Taxa de venda', 'Maquininha, app de entrega, link', '', '%') +
+    linha('valorHora', 'Valor da sua hora', 'Usado quando a mão de obra é por hora', 'R$', '') +
+    '</section>';
+  if (S.erro) out += '<div class="erro">' + esc(S.erro) + '</div>';
+  out += '<button class="btn" type="button" id="salvar-padroes">Salvar padrões</button>';
+  return out;
+}
+function painelReceita(){
+  return '<div class="painel" id="painel"><div class="painel-in"><div class="row between" style="align-items:flex-end"><div class="stack" style="gap:2px"><small>Preço sugerido por unidade</small><span class="grande" id="p-preco">—</span></div><div class="lado"><span id="p-venda"></span><span id="p-lucro"></span></div></div><button class="btn-branco" type="button" id="salvar-rec">Salvar receita</button></div></div>';
+}
+function atualizaCalc(){
+  if (S.view !== 'receita' || !S.draft) return;
+  var d = S.draft, c = calc(d);
+  d.itens.forEach(function(it, idx){
+    var el = document.getElementById('c-' + idx); if (!el) return;
+    var u = custoUnit(S.ings[it.ingId]);
+    el.textContent = (u != null && it.qtd != null) ? brl(u * it.qtd) : '—';
+  });
+  set('v-ing', c.un != null ? brl(c.un) : '—');
+  set('v-ing-total', c.ok ? 'Por unidade · receita inteira ' + brl(c.total) : 'Por unidade');
+  ['fixos','utens','mao','lucro','taxa'].forEach(function(k){ set('v-' + k, c.v ? brl(c.v[k]) : '—'); });
+  set('s-real', c.preco != null ? brl(c.custoReal) : '—');
+  set('s-lucro', c.preco != null ? brl(c.lucroUn) : '—');
+  set('s-margem', c.preco != null ? pctTxt(c.margem) : '—');
+  set('s-mult', c.mult != null ? c.mult.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'x o custo' : '—');
+  document.querySelectorAll('[data-dif]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-dif') === (d.dificuldade || 'medio'))); });
+  var p = document.getElementById('p-preco'); if (p) p.textContent = c.preco != null ? brl(c.preco) : '—';
+  var v = document.getElementById('p-venda'), l = document.getElementById('p-lucro');
+  if (v && l){
+    if (c.preco != null){ v.textContent = 'Vendendo tudo ' + brl(c.venda); l.textContent = 'Lucro ' + brl(c.lucro); }
+    else { v.textContent = motivoSemPreco(d, c); l.textContent = ''; }
+  }
+}
+
+function vIngrediente(){
+  var d = S.ingDraft;
+  var usos = lista(S.recs).filter(function(r){ return (r.itens||[]).some(function(it){ return it.ingId === d.id; }); });
+  var volta = S.ingVolta === 'receita' ? 'Voltar à receita' : 'Ingredientes';
+  var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + esc(volta) + '</button>' + (d.id && S.ings[d.id] ? '<button class="btn-perigo" type="button" id="excluir">Excluir</button>' : '') + '</div>';
+  if (S.confirma) out += '<div class="confirma"><strong>Excluir este ingrediente?</strong><span class="sub">' + (usos.length ? 'Ele está em ' + usos.length + (usos.length === 1 ? ' receita, que fica' : ' receitas, que ficam') + ' sem preço até você trocar.' : 'Nenhuma receita usa ele.') + '</span><div class="row"><button type="button" id="sim-excluir" style="background:var(--grena);color:#fff">Excluir</button><button type="button" id="nao-excluir" style="background:#fff">Cancelar</button></div></div>';
+  out += '<div class="stack" style="gap:4px"><input id="i-nome" class="titulo-input" placeholder="Nome do ingrediente" aria-label="Nome do ingrediente" value="' + esc(d.nome) + '"><span class="sub">' + (S.ings[d.id] && S.ings[d.id].atualizado ? 'Último preço salvo ' + esc(quando(S.ings[d.id].atualizado)) : 'Ingrediente novo') + '</span></div>';
+  if (S.erro) out += '<div class="erro">' + esc(S.erro) + '</div>';
+  out += '<label class="campo">Quanto você pagou<span class="prefixo"><span>R$</span><input id="i-preco" inputmode="decimal" placeholder="0,00" value="' + esc(campoNum(d.preco, 2)) + '"></span></label>';
+  out += '<div class="row" style="align-items:flex-end;gap:10px"><label class="campo grow">Tamanho da embalagem<input id="i-emb" class="entrada" inputmode="decimal" placeholder="Ex.: 395" value="' + esc(campoNum(d.emb)) + '"></label><div class="seg" role="group" aria-label="Unidade">' +
+    ['g','ml','un'].map(function(u){ return '<button type="button" data-un="' + u + '" aria-pressed="' + (d.un === u) + '">' + u + '</button>'; }).join('') + '</div></div>';
+  out += '<div class="saipor"><span class="sub" style="font-size:14px">Sai por</span><b class="num" id="i-saipor">—</b></div>';
+  if (usos.length) out += '<section class="stack" style="gap:0"><h2 style="padding-bottom:6px">Usado em ' + usos.length + (usos.length === 1 ? ' receita' : ' receitas') + '</h2>' + usos.sort(ordenaNome).map(function(r){ return '<div class="row between" style="min-height:44px;border-bottom:1px solid var(--linha);font-size:14px"><span>' + esc(r.nome) + '</span><span class="sub">recalcula ao salvar</span></div>'; }).join('') + '</section>';
+  out += '<button class="btn" type="button" id="salvar-ing" style="margin-top:6px">' + (d.id && S.ings[d.id] ? 'Salvar novo preço' : 'Salvar ingrediente') + '</button>';
+  return out;
+}
+function atualizaSaiPor(){
+  var el = document.getElementById('i-saipor'); if (!el || !S.ingDraft) return;
+  el.textContent = porUnidade(S.ingDraft) || '—';
+}
+
+function render(){
+  if (!S.logado){ view.className = 'app'; view.innerHTML = vLogin(); abas.hidden = true; return; }
+  var editor = ['receita','ingrediente','compras','padroes'].indexOf(S.view) >= 0;
+  view.className = 'app' + (S.view === 'receita' ? ' editor' : '');
+  var html = S.view === 'inicio' ? vInicio() : S.view === 'receitas' ? vReceitas() : S.view === 'ingredientes' ? vIngredientes() : S.view === 'receita' ? vReceita() + painelReceita() : S.view === 'compras' ? vCompras() : S.view === 'padroes' ? vPadroes() : vIngrediente();
+  view.innerHTML = html;
+  abas.hidden = editor;
+  var aba = { receita:'receitas', compras:'receitas', ingrediente:'ingredientes', padroes:'inicio' }[S.view] || S.view;
+  abas.querySelectorAll('[data-go]').forEach(function(b){ if (b.getAttribute('data-go') === aba) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  if (S.view === 'receita') atualizaCalc();
+  if (S.view === 'compras') atualizaCompras();
+  if (S.view === 'ingrediente') atualizaSaiPor();
+}
+function ir(v){ S.view = v; S.confirma = false; S.erro = ''; render(); window.scrollTo(0,0); }
+
+function abrirReceita(id){
+  var r = id ? S.recs[id] : null;
+  var pc = {}; if (r && r.pcts) for (var k in r.pcts) if (r.pcts[k] != null) pc[k] = r.pcts[k];
+  S.draft = r ? { id: r.id, nome: r.nome || '', rende: r.rende == null ? null : r.rende, itens: (r.itens||[]).map(function(it){ return { ingId: it.ingId, qtd: it.qtd == null ? null : it.qtd }; }), tempo: r.tempo || '', preparo: r.preparo || '', obs: r.obs || '',
+                  categoria: r.categoria || '', durab: r.durab == null ? null : r.durab, dificuldade: r.dificuldade || 'medio', maoModo: r.maoModo || 'pct', tempoMin: r.tempoMin == null ? null : r.tempoMin, pcts: pc }
+              : { id: null, nome: '', rende: 10, itens: [], tempo: '', preparo: '', obs: '', categoria: '', durab: null, dificuldade: 'medio', maoModo: 'pct', tempoMin: null, pcts: {} };
+  ir('receita');
+}
+function abrirIngrediente(id, volta){
+  var i = id ? S.ings[id] : null;
+  S.ingDraft = i ? { id: i.id, nome: i.nome || '', preco: i.preco == null ? null : i.preco, emb: i.emb == null ? null : i.emb, un: i.un || 'g' }
+                 : { id: null, nome: '', preco: null, emb: null, un: 'g' };
+  S.ingOrig = i ? { preco: i.preco, emb: i.emb, un: i.un } : null;
+  S.ingVolta = volta || null;
+  ir('ingrediente');
+}
+
+function novoId(){
+  try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e){}
+  return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+}
+function caminho(path){ var p = path.split('/'); return { tabela: p[0], id: p[1] }; }
+function gravar(path, data){
+  if (!sb || !uid) return Promise.reject({ code:'unavailable' });
+  var t = caminho(path), agora = new Date().toISOString();
+  var q = t.tabela === 'config'
+    ? sb.from('config').upsert({ owner: uid, precos: data, updated_at: agora }, { onConflict: 'owner' })
+    : sb.from(t.tabela).upsert({ owner: uid, id: t.id, dados: data, updated_at: agora }, { onConflict: 'owner,id' });
+  return q.then(function(r){ if (r.error) throw r.error; });
+}
+function apagar(path){
+  if (!sb || !uid) return Promise.reject({ code:'unavailable' });
+  var t = caminho(path);
+  return sb.from(t.tabela).delete().eq('owner', uid).eq('id', t.id).then(function(r){ if (r.error) throw r.error; });
+}
+function falhou(e){
+  if (window.console) console.error(e);
+  toast('Não deu para salvar. Confira a internet e tente de novo.');
+}
+
+function salvarReceita(){
+  var d = S.draft;
+  var nome = d.nome.trim();
+  if (!nome){ S.erro = 'Dê um nome para a receita antes de salvar.'; render(); document.getElementById('r-nome').focus(); return; }
+  var id = d.id || novoId('receitas');
+  var doc = { id: id, nome: nome, rende: d.rende, itens: d.itens.map(function(it){ return { ingId: it.ingId, qtd: it.qtd }; }), tempo: d.tempo.trim(), preparo: d.preparo, obs: d.obs,
+    categoria: d.categoria.trim(), durab: d.durab, dificuldade: d.dificuldade, maoModo: d.maoModo, tempoMin: d.tempoMin, pcts: d.pcts, atualizado: new Date().toISOString() };
+  S.recs[id] = doc;
+  gravar('receitas/' + id, doc).then(function(){ toast('Receita salva'); }).catch(falhou);
+  S.draft = null; ir('receitas');
+}
+function salvarIngrediente(){
+  var d = S.ingDraft;
+  var nome = d.nome.trim();
+  if (!nome){ S.erro = 'Dê um nome para o ingrediente.'; render(); document.getElementById('i-nome').focus(); return; }
+  if (!(d.emb > 0)){ S.erro = 'Informe o tamanho da embalagem (maior que zero).'; render(); document.getElementById('i-emb').focus(); return; }
+  var id = d.id || novoId('ingredientes');
+  var antigo = S.ings[id];
+  var mudouPreco = !S.ingOrig || S.ingOrig.preco !== d.preco || S.ingOrig.emb !== d.emb || S.ingOrig.un !== d.un;
+  var doc = { id: id, nome: nome, preco: d.preco, emb: d.emb, un: d.un, atualizado: mudouPreco || !antigo ? new Date().toISOString() : (antigo.atualizado || new Date().toISOString()) };
+  S.ings[id] = doc;
+  gravar('ingredientes/' + id, doc).then(function(){ toast(mudouPreco && antigo ? 'Preço atualizado nas receitas' : 'Ingrediente salvo'); }).catch(falhou);
+  var volta = S.ingVolta; S.ingDraft = null; S.ingVolta = null;
+  if (volta === 'receita' && S.draft){
+    if (!S.draft.itens.some(function(it){ return it.ingId === id; })) S.draft.itens.push({ ingId: id, qtd: null });
+    ir('receita');
+  } else ir('ingredientes');
+}
+
+function carregarExemplo(){
+  var agora = new Date().toISOString();
+  var ings = [
+    { id:'ex-leite-condensado', nome:'Leite condensado', preco:7.49, emb:395, un:'g' },
+    { id:'ex-creme-de-leite', nome:'Creme de leite', preco:3.99, emb:200, un:'g' },
+    { id:'ex-chocolate-50', nome:'Chocolate 50%', preco:54.90, emb:1000, un:'g' },
+    { id:'ex-manteiga', nome:'Manteiga sem sal', preco:12.90, emb:200, un:'g' },
+    { id:'ex-granulado', nome:'Granulado belga', preco:39.90, emb:1000, un:'g' },
+    { id:'ex-forminhas', nome:'Forminhas nº 4', preco:9.90, emb:100, un:'un' }
+  ];
+  var rec = { id:'ex-brigadeiro', nome:'Brigadeiro gourmet (exemplo)', rende:40, categoria:'Doce fino', durab:3, dificuldade:'medio', maoModo:'pct', tempoMin:null, pcts:{}, tempo:'', preparo:'', obs:'', atualizado: agora,
+    itens:[{ingId:'ex-leite-condensado',qtd:790},{ingId:'ex-creme-de-leite',qtd:200},{ingId:'ex-chocolate-50',qtd:120},{ingId:'ex-manteiga',qtd:20},{ingId:'ex-granulado',qtd:200},{ingId:'ex-forminhas',qtd:40}] };
+  var ps = ings.map(function(i){ i.atualizado = agora; S.ings[i.id] = i; return gravar('ingredientes/' + i.id, i); });
+  S.recs[rec.id] = rec; ps.push(gravar('receitas/' + rec.id, rec));
+  Promise.all(ps).then(function(){ toast('Exemplo carregado. Troque os preços pelos seus.'); }).catch(falhou);
+  render();
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('click', function(ev){
+  var t = ev.target.closest('button'); if (!t) return;
+  if (t.id === 'sair'){ sair(); return; }
+  if (t.id === 'ir-esqueci' || t.id === 'ir-criar' || t.id === 'ir-entrar'){
+    var em = document.getElementById('l-email'); if (em) S.authEmail = em.value.trim();
+    S.authModo = t.id === 'ir-esqueci' ? 'esqueci' : t.id === 'ir-criar' ? 'criar' : 'entrar';
+    S.loginErro = ''; S.authMsg = ''; render(); return;
+  }
+  if (t.hasAttribute('data-go')){ if (t.hasAttribute('data-filtro')) S.filtro = t.getAttribute('data-filtro'); ir(t.getAttribute('data-go')); return; }
+  if (t.hasAttribute('data-filtro')){ S.filtro = t.getAttribute('data-filtro'); render(); return; }
+  if (t.hasAttribute('data-rec')){ abrirReceita(t.getAttribute('data-rec')); return; }
+  if (t.hasAttribute('data-ing')){ abrirIngrediente(t.getAttribute('data-ing'), t.hasAttribute('data-volta') ? 'receita' : null); return; }
+  var nv = t.getAttribute('data-new');
+  if (nv === 'rec'){ abrirReceita(null); return; }
+  if (nv === 'ing'){ abrirIngrediente(null, null); return; }
+  if (t.id === 'exemplo'){ carregarExemplo(); return; }
+  if (t.id === 'abrir-padroes'){ S.cfgDraft = CFG(); ir('padroes'); return; }
+  if (t.id === 'salvar-padroes'){
+    var cd = S.cfgDraft, okc = true;
+    ['fixos','utens','simples','medio','complexo','lucro','taxa'].forEach(function(k){ if (cd[k] == null || cd[k] < 0) okc = false; });
+    if (!okc){ S.erro = 'Preencha todos os percentuais (pode ser 0).'; render(); return; }
+    if (cd.taxa >= 90){ S.erro = 'A taxa de venda precisa ser menor que 90%.'; render(); return; }
+    S.cfg = cd; S.cfgDraft = null;
+    gravar('config/precos', cd).then(function(){ toast('Padrões salvos'); }).catch(falhou);
+    ir('inicio'); return;
+  }
+  if (t.id === 'compras'){ ir('compras'); return; }
+  if (t.id === 'padrao-rec' && S.draft){ S.draft.pcts = {}; render(); toast('Percentuais voltaram ao padrão'); return; }
+  if (t.hasAttribute('data-dif') && S.draft){
+    S.draft.dificuldade = t.getAttribute('data-dif'); delete S.draft.pcts.mao;
+    if (S.draft.maoModo !== 'hora') render(); else atualizaCalc();
+    return;
+  }
+  if (t.hasAttribute('data-modo') && S.draft){ S.draft.maoModo = t.getAttribute('data-modo'); render(); return; }
+  if (t.id === 'voltar' && S.view === 'compras'){ ir('receita'); return; }
+  if (t.id === 'voltar' && S.view === 'padroes'){ S.cfgDraft = null; ir('inicio'); return; }
+  if (t.id === 'voltar'){
+    if (S.view === 'ingrediente' && S.ingVolta === 'receita' && S.draft){ S.ingDraft = null; S.ingVolta = null; ir('receita'); }
+    else { var dest = S.view === 'receita' ? 'receitas' : 'ingredientes'; S.draft = null; S.ingDraft = null; ir(dest); }
+    return;
+  }
+  if (t.id === 'excluir'){ S.confirma = true; render(); return; }
+  if (t.id === 'nao-excluir'){ S.confirma = false; render(); return; }
+  if (t.id === 'sim-excluir'){
+    if (S.view === 'receita' && S.draft && S.draft.id){ var rid = S.draft.id; delete S.recs[rid]; apagar('receitas/' + rid).then(function(){ toast('Receita excluída'); }).catch(falhou); S.draft = null; ir('receitas'); }
+    else if (S.view === 'ingrediente' && S.ingDraft && S.ingDraft.id){ var iid = S.ingDraft.id; delete S.ings[iid]; apagar('ingredientes/' + iid).then(function(){ toast('Ingrediente excluído'); }).catch(falhou); S.ingDraft = null; S.ingVolta = null; ir('ingredientes'); }
+    return;
+  }
+  if (t.hasAttribute('data-passo') && S.draft){
+    var n = (S.draft.rende || 0) + Number(t.getAttribute('data-passo'));
+    S.draft.rende = Math.max(1, Math.round(n));
+    document.getElementById('r-rende').value = campoNum(S.draft.rende); atualizaCalc(); return;
+  }
+  if (t.hasAttribute('data-m') && S.draft){
+    S.draft.margem = Number(t.getAttribute('data-m'));
+    document.getElementById('r-margem').value = campoNum(S.draft.margem); atualizaCalc(); return;
+  }
+  if (t.hasAttribute('data-rm') && S.draft){ S.draft.itens.splice(Number(t.getAttribute('data-rm')), 1); render(); return; }
+  if (t.id === 'add-btn' && S.draft){
+    var sel = document.getElementById('add-ing'); var v = sel.value;
+    if (!v){ sel.focus(); return; }
+    if (v === '__novo'){ abrirIngrediente(null, 'receita'); return; }
+    S.draft.itens.push({ ingId: v, qtd: null }); render();
+    var qs = document.querySelectorAll('[data-q]'); if (qs.length) qs[qs.length-1].focus();
+    return;
+  }
+  if (t.hasAttribute('data-un') && S.ingDraft){
+    S.ingDraft.un = t.getAttribute('data-un');
+    document.querySelectorAll('[data-un]').forEach(function(b){ b.setAttribute('aria-pressed', String(b === t)); });
+    atualizaSaiPor(); return;
+  }
+  if (t.id === 'salvar-rec'){ salvarReceita(); return; }
+  if (t.id === 'salvar-ing'){ salvarIngrediente(); return; }
+});
+document.addEventListener('submit', function(ev){
+  ev.preventDefault();
+  if (S.ocupado) return;
+  if (ev.target.id === 'f-criar') criarConta();
+  else if (ev.target.id === 'f-entrar') entrar();
+  else if (ev.target.id === 'f-esqueci') enviarReset();
+  else if (ev.target.id === 'f-nova') salvarNovaSenha();
+});
+document.addEventListener('change', function(ev){
+  if (ev.target.id === 'add-ing' && ev.target.value === '__novo') abrirIngrediente(null, 'receita');
+});
+document.addEventListener('input', function(ev){
+  var el = ev.target, id = el.id;
+  if (id === 'busca'){ S.busca = el.value; document.getElementById('lista-rec').innerHTML = listaReceitas(); return; }
+  if (id === 'busca-ing'){ S.buscaIng = el.value; document.getElementById('lista-ing').innerHTML = listaIngredientes(); return; }
+  if (S.draft && S.view === 'receita'){
+    if (id === 'r-nome'){ S.draft.nome = el.value; return; }
+    if (id === 'r-tempo'){ S.draft.tempo = el.value; return; }
+    if (id === 'r-cat'){ S.draft.categoria = el.value; return; }
+    if (id === 'r-durab'){ S.draft.durab = num(el.value); return; }
+    if (el.hasAttribute('data-p')){
+      var pk = el.getAttribute('data-p'), pv = num(el.value);
+      if (pk === 'tempoMin') S.draft.tempoMin = pv;
+      else if (pv == null) delete S.draft.pcts[pk];
+      else S.draft.pcts[pk] = pv;
+      atualizaCalc(); return;
+    }
+    if (id === 'r-preparo'){ S.draft.preparo = el.value; return; }
+    if (id === 'r-obs'){ S.draft.obs = el.value; return; }
+    if (id === 'r-rende'){ var r = num(el.value); S.draft.rende = r != null && r > 0 ? r : null; atualizaCalc(); return; }
+    if (id === 'r-margem'){ S.draft.margem = num(el.value); atualizaCalc(); return; }
+    if (el.hasAttribute('data-q')){ var it = S.draft.itens[Number(el.getAttribute('data-q'))]; if (it){ it.qtd = num(el.value); atualizaCalc(); } return; }
+  }
+  if (id === 'compra-qtd'){ S.compraQtd = num(el.value); atualizaCompras(); return; }
+  if (S.view === 'padroes' && S.cfgDraft && el.hasAttribute('data-cfg')){ S.cfgDraft[el.getAttribute('data-cfg')] = num(el.value); return; }
+  if (S.ingDraft && S.view === 'ingrediente'){
+    if (id === 'i-nome'){ S.ingDraft.nome = el.value; return; }
+    if (id === 'i-preco'){ S.ingDraft.preco = num(el.value); atualizaSaiPor(); return; }
+    if (id === 'i-emb'){ S.ingDraft.emb = num(el.value); atualizaSaiPor(); return; }
+  }
+});
+
+/* ---------- dados ---------- */
+function aoMudar(){
+  if (!S.logado) return;
+  if (S.view === 'receita') atualizaCalc();
+  else if (S.view === 'compras') atualizaCompras();
+  else if (S.view !== 'ingrediente' && S.view !== 'padroes') render();
+}
+function carregar(){
+  if (!sb || !uid) return;
+  Promise.all([
+    sb.from('ingredientes').select('id,dados'),
+    sb.from('receitas').select('id,dados'),
+    sb.from('config').select('precos').maybeSingle()
+  ]).then(function(rs){
+    if (rs[0].error || rs[1].error) throw (rs[0].error || rs[1].error);
+    var mapa = function(rows){
+      var o = {};
+      (rows || []).forEach(function(row){ var d = {}, b = row.dados || {}; for (var k in b) d[k] = b[k]; d.id = row.id; o[row.id] = d; });
+      return o;
+    };
+    S.ings = mapa(rs[0].data); S.recs = mapa(rs[1].data);
+    S.cfg = rs[2] && !rs[2].error && rs[2].data && rs[2].data.precos ? rs[2].data.precos : null;
+    S.semBanco = false; S.carregou = { i:true, r:true }; aoMudar();
+  }).catch(function(e){
+    if (window.console) console.error(e);
+    S.semBanco = true; S.carregou = { i:true, r:true }; aoMudar();
+  });
+}
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'visible' && S.logado && ['inicio','receitas','ingredientes'].indexOf(S.view) >= 0) carregar();
+});
+render();
+(function iniciar(){
+  var cfg = window.BV_CONFIG || {};
+  if (!window.supabase || !cfg.supabaseUrl || !cfg.supabaseKey || /COLE/i.test(cfg.supabaseKey)){ S.authPronto = true; render(); return; }
+  sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+  sb.auth.onAuthStateChange(function(evento, sessao){
+    setTimeout(function(){
+      if (evento === 'PASSWORD_RECOVERY' || (recuperando && sessao)){ recuperando = true; S.authPronto = true; S.logado = false; S.authModo = 'nova-senha'; render(); return; }
+      if (sessao && sessao.user){
+        if (!S.logado || uid !== sessao.user.id) entrarNoApp(sessao.user);
+        return;
+      }
+      S.authPronto = true;
+      if (S.logado) saiuDoApp(); else render();
+    }, 0);
+  });
+})();
+if ('serviceWorker' in navigator && location.protocol === 'https:'){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+})();
+</script>
+</body>
+</html>
