@@ -475,6 +475,7 @@ function listaReceitas(){
 
 function vIngredientes(){
   var out = '<div class="row between"><div class="stack" style="gap:2px"><h1>Ingredientes</h1><span class="sub">Mudou o preço aqui, muda em todas as receitas.</span></div><button class="fab" type="button" data-new="ing" aria-label="Novo ingrediente">' + ICON_MAIS + '</button></div>';
+  out += '<div class="row" style="gap:10px;flex-wrap:wrap"><button class="btn2" type="button" id="importar" style="flex:1 1 180px">Importar planilha Excel</button><a class="link" href="modelo-ingredientes.xlsx" download style="display:flex;align-items:center;text-decoration:none">Baixar modelo</a><input type="file" id="arquivo-planilha" accept=".xlsx,.xls,.csv" hidden></div>';
   out += '<label class="busca">' + ICON_BUSCA + '<input id="busca-ing" type="search" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente" value="' + esc(S.buscaIng) + '"></label>';
   out += '<div id="lista-ing">' + listaIngredientes() + '</div>';
   return out;
@@ -666,12 +667,12 @@ function atualizaSaiPor(){
 
 function render(){
   if (!S.logado){ view.className = 'app'; view.innerHTML = vLogin(); abas.hidden = true; return; }
-  var editor = ['receita','ingrediente','compras','padroes'].indexOf(S.view) >= 0;
+  var editor = ['receita','ingrediente','compras','padroes','importar'].indexOf(S.view) >= 0;
   view.className = 'app' + (S.view === 'receita' ? ' editor' : '');
-  var html = S.view === 'inicio' ? vInicio() : S.view === 'receitas' ? vReceitas() : S.view === 'ingredientes' ? vIngredientes() : S.view === 'receita' ? vReceita() + painelReceita() : S.view === 'compras' ? vCompras() : S.view === 'padroes' ? vPadroes() : vIngrediente();
+  var html = S.view === 'inicio' ? vInicio() : S.view === 'receitas' ? vReceitas() : S.view === 'ingredientes' ? vIngredientes() : S.view === 'receita' ? vReceita() + painelReceita() : S.view === 'compras' ? vCompras() : S.view === 'padroes' ? vPadroes() : S.view === 'importar' ? vImportar() : vIngrediente();
   view.innerHTML = html;
   abas.hidden = editor;
-  var aba = { receita:'receitas', compras:'receitas', ingrediente:'ingredientes', padroes:'inicio' }[S.view] || S.view;
+  var aba = { receita:'receitas', compras:'receitas', ingrediente:'ingredientes', importar:'ingredientes', padroes:'inicio' }[S.view] || S.view;
   abas.querySelectorAll('[data-go]').forEach(function(b){ if (b.getAttribute('data-go') === aba) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.view === 'receita') atualizaCalc();
   if (S.view === 'compras') atualizaCompras();
@@ -730,8 +731,148 @@ function salvarReceita(){
   gravar('receitas/' + id, doc).then(function(){ toast('Receita salva'); }).catch(falhou);
   S.draft = null; ir('receitas');
 }
+/* ---------- importar planilha de ingredientes ---------- */
+var XLSX_URL = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+function carregaXlsx(){
+  return new Promise(function(ok, falha){
+    if (window.XLSX) return ok(window.XLSX);
+    var s = document.createElement('script'); s.src = XLSX_URL;
+    s.onload = function(){ window.XLSX ? ok(window.XLSX) : falha({ code:'leitor' }); };
+    s.onerror = function(){ falha({ code:'leitor' }); };
+    document.head.appendChild(s);
+  });
+}
+function normTxt(t){ return String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+function colunaDe(h){
+  var n = normTxt(h); if (!n) return null;
+  if (/^(ingrediente|nome|produto|item|insumo)/.test(n)) return 'nome';
+  if (/(preco|valor|pagou|custo)/.test(n)) return 'preco';
+  if (/(tamanho|quantidade|qtd|embalagem|peso|conteudo)/.test(n)) return 'emb';
+  if (/^(unidade|unid|un|medida)\b/.test(n)) return 'un';
+  return null;
+}
+function unidadeDe(v){
+  var n = normTxt(v);
+  if (/^(g|gr|grs|grama|gramas)$/.test(n)) return { un:'g', fator:1 };
+  if (/^(kg|kgs|quilo|quilos|kilo|kilos|quilograma|quilogramas)$/.test(n)) return { un:'g', fator:1000 };
+  if (/^(ml|mililitro|mililitros)$/.test(n)) return { un:'ml', fator:1 };
+  if (/^(l|lt|lts|litro|litros)$/.test(n)) return { un:'ml', fator:1000 };
+  if (/^(un|und|unid|unidade|unidades|u|pc|pcs|peca|pecas)$/.test(n)) return { un:'un', fator:1 };
+  return { un:null, fator:1 };
+}
+function vazioCel(v){ return v == null || String(v).trim() === ''; }
+function lerPlanilha(arquivo){
+  return carregaXlsx().then(function(X){
+    return arquivo.arrayBuffer().then(function(buf){
+      var wb = X.read(buf, { type:'array' });
+      var aba = wb.SheetNames.filter(function(n){ return normTxt(n) === 'ingredientes'; })[0] || wb.SheetNames[0];
+      var linhas = X.utils.sheet_to_json(wb.Sheets[aba], { header:1, raw:true, defval:'' });
+      var hIdx = -1, mapa = null;
+      for (var i = 0; i < Math.min(linhas.length, 10); i++){
+        var m = {};
+        (linhas[i] || []).forEach(function(h, j){ var c = colunaDe(h); if (c && m[c] == null) m[c] = j; });
+        if (m.nome != null && m.emb != null){ hIdx = i; mapa = m; break; }
+      }
+      if (hIdx < 0) throw { code:'layout' };
+      var porNome = {}; lista(S.ings).forEach(function(x){ porNome[normTxt(x.nome)] = x; });
+      var vistos = {}, out = [];
+      for (var r = hIdx + 1; r < linhas.length; r++){
+        var L = linhas[r] || [];
+        var nome = String(L[mapa.nome] == null ? '' : L[mapa.nome]).trim().replace(/\s+/g, ' ');
+        var precoRaw = mapa.preco != null ? L[mapa.preco] : '';
+        var embRaw = L[mapa.emb];
+        var unRaw = mapa.un != null ? L[mapa.un] : '';
+        if (!nome && vazioCel(embRaw) && vazioCel(precoRaw)) continue;
+        var linha = { n: r + 1, nome: nome, erro: '' };
+        var preco = vazioCel(precoRaw) ? null : num(precoRaw);
+        var emb = num(embRaw);
+        var u = vazioCel(unRaw) ? { un:'g', fator:1 } : unidadeDe(unRaw);
+        if (!nome) linha.erro = 'Falta o nome do ingrediente';
+        else if (!vazioCel(precoRaw) && (preco == null || preco < 0)) linha.erro = 'Preço não é um número válido';
+        else if (!(emb > 0)) linha.erro = 'Tamanho da embalagem precisa ser um número maior que zero';
+        else if (!u.un) linha.erro = 'Unidade "' + String(unRaw) + '" não reconhecida (use g, ml ou un)';
+        if (!linha.erro){
+          linha.preco = preco == null ? null : Math.round(preco * 100) / 100;
+          linha.emb = Math.round(emb * u.fator * 1000) / 1000;
+          linha.un = u.un;
+          var k = normTxt(nome), ex = porNome[k];
+          linha.existe = ex ? ex.id : null;
+          if (vistos[k]) vistos[k].erro = 'Repetido mais abaixo na planilha (vale a última linha)';
+          vistos[k] = linha;
+        }
+        out.push(linha);
+      }
+      return { arquivo: arquivo.name, linhas: out };
+    });
+  });
+}
+function vImportar(){
+  var im = S.importacao;
+  var ok = im.linhas.filter(function(l){ return !l.erro; });
+  var errs = im.linhas.filter(function(l){ return l.erro; });
+  var novos = ok.filter(function(l){ return !l.existe; }).length, atual = ok.length - novos;
+  var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Ingredientes</button></div>';
+  out += '<div class="stack" style="gap:2px"><h1>Importar planilha</h1><span class="sub">' + esc(im.arquivo) + '</span></div>';
+  out += '<div class="resumo" role="group" aria-label="Resumo da planilha"><div><b>' + novos + '</b><span>Novos</span></div><div><b>' + atual + '</b><span>Atualizados</span></div><div><b>' + errs.length + '</b><span>Com problema</span></div></div>';
+  if (errs.length){
+    out += '<section class="stack" style="gap:0"><h2 style="padding-bottom:6px">Não vão ser cadastrados</h2>' + errs.map(function(l){
+      return '<div class="cp-linha"><span class="grow stack" style="gap:2px"><span style="font-size:15px;font-weight:500">' + esc(l.nome || 'Sem nome') + '</span><span class="erro" style="font-weight:500">' + esc(l.erro) + '</span></span><span class="dir">Linha ' + l.n + '</span></div>';
+    }).join('') + '</section>';
+  }
+  if (ok.length){
+    out += '<section class="stack" style="gap:0"><h2 style="padding-bottom:6px">Vão ser cadastrados</h2>' + ok.map(function(l){
+      var info = campoNum(l.emb) + ' ' + l.un + (l.preco != null ? ' por ' + brl(l.preco) : ' · sem preço');
+      return '<div class="cp-linha"><span class="grow stack" style="gap:2px"><span style="font-size:15px;font-weight:500">' + esc(l.nome) + '</span><span class="sub">' + esc(info) + '</span></span><span class="tag">' + (l.existe ? 'Atualiza' : 'Novo') + '</span></div>';
+    }).join('') + '</section>';
+    out += '<button class="btn" type="button" id="confirmar-import">Cadastrar ' + ok.length + (ok.length === 1 ? ' ingrediente' : ' ingredientes') + '</button>';
+  } else {
+    out += '<div class="vazio"><p>Nenhuma linha válida para cadastrar. Corrija a planilha e importe de novo.</p></div>';
+  }
+  return out;
+}
+function confirmarImportacao(){
+  var ok = S.importacao.linhas.filter(function(l){ return !l.erro; });
+  if (!ok.length) return;
+  var agora = new Date().toISOString();
+  var docs = ok.map(function(l){
+    var id = l.existe || novoId();
+    var doc = { id: id, nome: l.nome, preco: l.preco, emb: l.emb, un: l.un, atualizado: agora };
+    S.ings[id] = doc;
+    return { owner: uid, id: id, dados: doc, updated_at: agora };
+  });
+  var lotes = [];
+  for (var i = 0; i < docs.length; i += 200) lotes.push(docs.slice(i, i + 200));
+  var n = ok.length;
+  lotes.reduce(function(p, lote){
+    return p.then(function(){ return sb.from('ingredientes').upsert(lote, { onConflict:'owner,id' }).then(function(r){ if (r.error) throw r.error; }); });
+  }, Promise.resolve()).then(function(){
+    toast(n === 1 ? '1 ingrediente cadastrado' : n + ' ingredientes cadastrados');
+  }).catch(function(e){ falhou(e); carregar(); });
+  S.importacao = null; ir('ingredientes');
+}
+function aoEscolherPlanilha(input){
+  var arq = input.files && input.files[0]; input.value = '';
+  if (!arq) return;
+  toast('Lendo a planilha…');
+  lerPlanilha(arq).then(function(res){
+    if (!res.linhas.length){ toast('A planilha não tem ingredientes preenchidos.'); return; }
+    S.importacao = res; ir('importar');
+  }).catch(function(e){
+    if (window.console) console.error(e);
+    var c = e && e.code;
+    toast(c === 'layout' ? 'Não achei as colunas. Use o modelo: Ingrediente, Preço pago, Tamanho da embalagem e Unidade.'
+      : c === 'leitor' ? 'Não consegui abrir o leitor de planilhas. Confira a internet e tente de novo.'
+      : 'Não consegui ler esse arquivo. Salve como .xlsx e tente de novo.');
+  });
+}
+
 function salvarIngrediente(){
   var d = S.ingDraft;
+  // lê direto dos campos, para não perder o que o teclado ou o preenchimento automático digitou
+  var elN = document.getElementById('i-nome'), elP = document.getElementById('i-preco'), elE = document.getElementById('i-emb');
+  if (elN) d.nome = elN.value;
+  if (elP) d.preco = num(elP.value);
+  if (elE) d.emb = num(elE.value);
   var nome = d.nome.trim();
   if (!nome){ S.erro = 'Dê um nome para o ingrediente.'; render(); document.getElementById('i-nome').focus(); return; }
   if (!(d.emb > 0)){ S.erro = 'Informe o tamanho da embalagem (maior que zero).'; render(); document.getElementById('i-emb').focus(); return; }
@@ -802,6 +943,9 @@ document.addEventListener('click', function(ev){
     ir('inicio'); return;
   }
   if (t.id === 'compras'){ ir('compras'); return; }
+  if (t.id === 'importar'){ var fi = document.getElementById('arquivo-planilha'); if (fi) fi.click(); return; }
+  if (t.id === 'confirmar-import' && S.importacao){ confirmarImportacao(); return; }
+  if (t.id === 'voltar' && S.view === 'importar'){ S.importacao = null; ir('ingredientes'); return; }
   if (t.id === 'padrao-rec' && S.draft){ S.draft.pcts = {}; render(); toast('Percentuais voltaram ao padrão'); return; }
   if (t.hasAttribute('data-dif') && S.draft){
     S.draft.dificuldade = t.getAttribute('data-dif'); delete S.draft.pcts.mao;
@@ -858,6 +1002,7 @@ document.addEventListener('submit', function(ev){
   else if (ev.target.id === 'f-nova') salvarNovaSenha();
 });
 document.addEventListener('change', function(ev){
+  if (ev.target.id === 'arquivo-planilha'){ aoEscolherPlanilha(ev.target); return; }
   if (ev.target.id === 'add-ing' && ev.target.value === '__novo') abrirIngrediente(null, 'receita');
 });
 document.addEventListener('input', function(ev){
@@ -884,6 +1029,7 @@ document.addEventListener('input', function(ev){
   }
   if (id === 'compra-qtd'){ S.compraQtd = num(el.value); atualizaCompras(); return; }
   if (S.view === 'padroes' && S.cfgDraft && el.hasAttribute('data-cfg')){ S.cfgDraft[el.getAttribute('data-cfg')] = num(el.value); return; }
+  if (S.ingDraft && S.view === 'ingrediente' && S.erro){ S.erro = ''; var avisoErro = view.querySelector('.erro'); if (avisoErro) avisoErro.remove(); }
   if (S.ingDraft && S.view === 'ingrediente'){
     if (id === 'i-nome'){ S.ingDraft.nome = el.value; return; }
     if (id === 'i-preco'){ S.ingDraft.preco = num(el.value); atualizaSaiPor(); return; }
@@ -896,7 +1042,7 @@ function aoMudar(){
   if (!S.logado) return;
   if (S.view === 'receita') atualizaCalc();
   else if (S.view === 'compras') atualizaCompras();
-  else if (S.view !== 'ingrediente' && S.view !== 'padroes') render();
+  else if (S.view !== 'ingrediente' && S.view !== 'padroes' && S.view !== 'importar') render();
 }
 function carregar(){
   if (!sb || !uid) return;
