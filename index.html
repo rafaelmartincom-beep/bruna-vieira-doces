@@ -164,6 +164,8 @@ textarea.entrada{height:auto;min-height:140px;padding:12px 14px;line-height:1.5;
 .marcavel input.marca{width:22px;height:22px;accent-color:var(--grena);flex-shrink:0;margin:0}
 .marcavel:has(input:checked){background:var(--rosado)}
 .painel-in small{line-height:1.45}
+.excl{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:10px;background:var(--grena);color:#fff;font-size:13px;font-weight:700;line-height:1;flex-shrink:0}
+.grupo-titulo{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--grena);padding:14px 0 4px}
 .faixa{background:var(--rosado);color:var(--grena);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:500}
 @media (prefers-reduced-motion: no-preference){.toast{animation:sobe .2s ease-out}@keyframes sobe{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}}
 </style>
@@ -426,12 +428,13 @@ function vInicio(){
   var com = cs.filter(function(x){ return x.c.preco != null; });
   var sem = cs.filter(function(x){ return x.c.preco == null; });
   var velhos = ings.filter(function(i){ return i.preco != null && dias(i.atualizado) > 60; });
-  var semPreco = ings.filter(function(i){ return i.preco == null; });
+  var semPreco = ings.filter(function(i){ return i.preco == null || !(i.emb > 0); });
   out += '<button class="atalho" type="button" data-new="rec"><span class="grow"><strong>Cadastrar receita</strong><small>Ingredientes, modo de preparo e preço</small></span>' + ICON_MAIS + '</button>';
   out += '<div class="resumo" role="group" aria-label="Resumo"><div><b>' + recs.length + '</b><span>Receitas</span></div><div><b>' + com.length + '</b><span>Com preço</span></div><div><b>' + sem.length + '</b><span>Sem preço</span></div></div>';
   var avisos = '';
-  if (sem.length) avisos += aviso('receitas', 'sem', sem.length === 1 ? '1 receita sem preço' : sem.length + ' receitas sem preço', sem.map(function(x){ return x.r.nome; }).join(', '));
-  if (semPreco.length) avisos += aviso('ingredientes', '', semPreco.length === 1 ? '1 ingrediente sem preço' : semPreco.length + ' ingredientes sem preço', semPreco.map(function(i){ return i.nome; }).join(', '));
+  var pendRec = recs.filter(function(r){ return pendencias(r).length; });
+  if (pendRec.length) avisos += aviso('receitas', 'pend', pendRec.length === 1 ? '1 receita para completar' : pendRec.length + ' receitas para completar', pendRec.map(function(r){ return r.nome; }).join(', '));
+  if (semPreco.length) avisos += aviso('ingredientes', '', semPreco.length === 1 ? '1 ingrediente para completar' : semPreco.length + ' ingredientes para completar', semPreco.map(function(i){ return i.nome; }).join(', '));
   if (velhos.length) avisos += aviso('ingredientes', '', velhos.length === 1 ? '1 preço desatualizado' : velhos.length + ' preços desatualizados', 'Sem revisão há mais de 60 dias');
   if (avisos) out += '<section class="stack"><h2>Precisa de você</h2>' + avisos + '</section>';
   var cf = CFG();
@@ -449,16 +452,19 @@ function itemReceita(r){
   var c = calc(r);
   var info = (r.categoria ? r.categoria + ' · ' : '') + (r.rende > 0 ? 'Rende ' + campoNum(r.rende) + ' un' : 'Sem rendimento') + ' · ' + (c.preco != null ? 'custo ' + brl(c.un) + '/un' : motivoSemPreco(r, c));
   var dir = c.preco != null ? '<span class="stack" style="gap:0;align-items:flex-end"><span class="preco">' + brl(c.preco) + '</span><span class="sub" style="font-size:11px">por unidade</span></span>' : '<span class="tag">Precificar</span>';
-  return '<button class="item" type="button" data-rec="' + esc(r.id) + '"><span class="grow stack" style="gap:3px"><span class="nome">' + esc(r.nome) + '</span><span class="info">' + esc(info) + '</span></span>' + dir + '</button>';
+  var pend = pendencias(r);
+  var falta = pend.length ? '<span class="info" style="color:var(--grena);font-weight:500">Completar: ' + esc(pend.slice(0, 3).join(', ') + (pend.length > 3 ? '…' : '')) + '</span>' : '';
+  return '<button class="item" type="button" data-rec="' + esc(r.id) + '"' + (pend.length ? ' aria-label="' + esc(r.nome) + ', falta completar"' : '') + '><span class="grow stack" style="gap:3px"><span class="nome row" style="gap:8px">' + (pend.length ? EXCL : '') + esc(r.nome) + '</span><span class="info">' + esc(info) + '</span>' + falta + '</span>' + dir + '</button>';
 }
 
 function vReceitas(){
   var out = '<div class="row between"><h1>Receitas</h1><button class="fab" type="button" data-new="rec" aria-label="Nova receita">' + ICON_MAIS + '</button></div>';
+  out += '<button class="btn2" type="button" id="importar-pdf" style="width:100%">Importar receita em PDF</button><input type="file" id="arquivo-pdf" accept="application/pdf,.pdf" multiple hidden>';
   out += '<label class="busca">' + ICON_BUSCA + '<input id="busca" type="search" placeholder="Buscar receita" aria-label="Buscar receita" value="' + esc(S.busca) + '"></label>';
   var recs = lista(S.recs);
   var nCom = recs.filter(function(r){ return calc(r).preco != null; }).length;
   out += '<div class="chips" role="group" aria-label="Filtrar">' +
-    chip('todas', 'Todas', recs.length) + chip('com', 'Com preço', nCom) + chip('sem', 'Sem preço', recs.length - nCom) + '</div>';
+    chip('todas', 'Todas', recs.length) + chip('com', 'Com preço', nCom) + chip('sem', 'Sem preço', recs.length - nCom) + chip('pend', 'Para completar', recs.filter(function(r){ return pendencias(r).length; }).length) + '</div>';
   out += '<div id="lista-rec">' + listaReceitas() + '</div>';
   return out;
 }
@@ -471,6 +477,7 @@ function listaReceitas(){
     var c = calc(r);
     if (S.filtro === 'com' && c.preco == null) return false;
     if (S.filtro === 'sem' && c.preco != null) return false;
+    if (S.filtro === 'pend' && !pendencias(r).length) return false;
     return !b || String(r.nome||'').toLowerCase().indexOf(b) >= 0;
   });
   if (!f.length) return '<div class="vazio"><p>Nada encontrado com esse filtro.</p></div>';
@@ -493,7 +500,7 @@ function vIngredientes(){
 function ingsFiltrados(){
   var b = S.buscaIng.trim().toLowerCase();
   // primeiro o que precisa de atenção, depois por nome
-  var peso = function(i){ return i.preco == null ? 0 : dias(i.atualizado) > 60 ? 1 : 2; };
+  var peso = function(i){ return (i.preco == null || !(i.emb > 0)) ? 0 : dias(i.atualizado) > 60 ? 1 : 2; };
   return lista(S.ings).filter(function(i){ return !b || String(i.nome||'').toLowerCase().indexOf(b) >= 0; })
     .sort(function(a,c){ return peso(a) - peso(c) || ordenaNome(a,c); });
 }
@@ -502,10 +509,10 @@ function listaIngredientes(){
   var f = ingsFiltrados();
   if (!f.length) return '<div class="vazio"><p>Nenhum ingrediente com esse nome.</p></div>';
   return f.map(function(i){
-    var emb = campoNum(i.emb) + ' ' + unidadeTxt(i.un);
-    var info = i.preco == null ? 'Embalagem de ' + emb : emb + ' por ' + brl(i.preco);
+    var emb = i.emb > 0 ? campoNum(i.emb) + ' ' + unidadeTxt(i.un) : '';
+    var info = !emb ? (i.preco == null ? 'Falta preço e tamanho da embalagem' : 'Falta o tamanho da embalagem') : i.preco == null ? 'Embalagem de ' + emb : emb + ' por ' + brl(i.preco);
     var d = dias(i.atualizado);
-    var marca = i.preco == null ? '<span class="tag">Falta o preço</span>' : d > 60 ? '<span class="tag">Há ' + d + ' dias</span>' : '<span class="sub" style="font-size:11px">' + esc(quando(i.atualizado)) + '</span>';
+    var marca = (i.preco == null || !(i.emb > 0)) ? '<span class="tag">Completar</span>' : d > 60 ? '<span class="tag">Há ' + d + ' dias</span>' : '<span class="sub" style="font-size:11px">' + esc(quando(i.atualizado)) + '</span>';
     var corpo = '<span class="grow stack" style="gap:3px"><span class="nome">' + esc(i.nome) + '</span><span class="info">' + esc(info) + '</span></span><span class="stack" style="gap:3px;align-items:flex-end"><span class="num" style="font-weight:600">' + (porUnidade(i) || '—') + '</span>' + marca + '</span>';
     if (S.selIng){
       return '<label class="item marcavel"><input type="checkbox" class="marca" data-sel="' + esc(i.id) + '"' + (S.selIng[i.id] ? ' checked' : '') + ' aria-label="Marcar ' + esc(i.nome) + '">' + corpo + '</label>';
@@ -551,6 +558,8 @@ function vReceita(){
   var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Receitas</button>' + (d.id ? '<button class="btn-perigo" type="button" id="excluir">Excluir</button>' : '') + '</div>';
   if (S.confirma) out += '<div class="confirma"><strong>Excluir esta receita?</strong><span class="sub">Os ingredientes continuam cadastrados.</span><div class="row"><button type="button" id="sim-excluir" style="background:var(--grena);color:#fff">Excluir</button><button type="button" id="nao-excluir" style="background:#fff">Cancelar</button></div></div>';
   out += '<input id="r-nome" class="titulo-input" placeholder="Nome da receita" aria-label="Nome da receita" value="' + esc(d.nome) + '">';
+  var pendD = pendencias(d);
+  if (pendD.length) out += '<div class="confirma"><strong class="row" style="gap:8px">' + EXCL + 'Falta completar</strong><span class="sub">' + esc(capital(pendD.join(', '))) + '.</span></div>';
   if (S.erro) out += '<div class="erro">' + esc(S.erro) + '</div>';
   var cats = CATS_BASE.slice();
   lista(S.recs).forEach(function(r){ if (r.categoria && cats.indexOf(r.categoria) < 0) cats.push(r.categoria); });
@@ -559,14 +568,17 @@ function vReceita(){
     '<div class="caixa"><span class="sub" style="font-size:14px">Rende</span><div class="row" style="gap:4px"><button class="passo" type="button" data-passo="-1" aria-label="Diminuir rendimento">−</button><input id="r-rende" class="passo-val" inputmode="decimal" aria-label="Rendimento em unidades" value="' + esc(campoNum(d.rende)) + '"><span class="sub">un</span><button class="passo" type="button" data-passo="1" aria-label="Aumentar rendimento">+</button></div></div>' +
     '<label class="campo">Durabilidade<span class="row" style="gap:8px"><input id="r-durab" class="entrada" style="width:110px" inputmode="numeric" placeholder="Ex.: 3" value="' + esc(campoNum(d.durab)) + '"><span class="sub">dias, aproximadamente</span></span></label>' +
     '<div class="stack" style="gap:8px"><span style="font-size:13px;font-weight:500">Dificuldade <span class="sub">(ajusta a mão de obra)</span></span><div class="margens" style="grid-template-columns:repeat(3,minmax(0,1fr))" role="group" aria-label="Dificuldade">' +
-    DIFS.map(function(x){ return '<button class="chip" type="button" data-dif="' + x.id + '" aria-pressed="' + ((d.dificuldade || 'medio') === x.id) + '">' + x.label + '</button>'; }).join('') + '</div></div></section>';
+    DIFS.map(function(x){ return '<button class="chip" type="button" data-dif="' + x.id + '" aria-pressed="' + (d.dificuldade === x.id) + '">' + x.label + '</button>'; }).join('') + '</div></div></section>';
   out += '<section class="stack" style="gap:0"><div class="row between" style="padding-bottom:4px"><h2>Ingredientes</h2><h2>Custo</h2></div>';
   if (!d.itens.length) out += '<p class="sub" style="margin:8px 0 12px">Adicione os ingredientes e a quantidade usada nesta receita.</p>';
+  var grupoAnt = '';
   d.itens.forEach(function(it, idx){
     var ing = S.ings[it.ingId];
     var nome = ing ? ing.nome : 'Ingrediente removido';
-    var semP = !ing || ing.preco == null;
-    out += '<div class="ing-linha"><span class="grow stack" style="gap:2px"><span style="font-size:14px">' + esc(nome) + '</span>' + (semP ? '<button type="button" class="tag" style="border:0;align-self:flex-start" data-ing="' + esc(it.ingId) + '" data-volta="1">Falta o preço</button>' : '') + '</span>' +
+    var semP = !ing || ing.preco == null || !(ing.emb > 0);
+    if (it.grupo && it.grupo !== grupoAnt) out += '<div class="grupo-titulo">' + esc(it.grupo) + '</div>';
+    grupoAnt = it.grupo || '';
+    out += '<div class="ing-linha"><span class="grow stack" style="gap:2px"><span style="font-size:14px">' + esc(nome) + '</span>' + (semP ? '<button type="button" class="tag" style="border:0;align-self:flex-start" data-ing="' + esc(it.ingId) + '" data-volta="1">' + EXCL + ' Completar preço</button>' : '') + '</span>' +
       '<input class="qtd" inputmode="decimal" data-q="' + idx + '" aria-label="Quantidade de ' + esc(nome) + '" placeholder="0" value="' + esc(campoNum(it.qtd)) + '"><span class="un">' + unidadeTxt(ing && ing.un) + '</span>' +
       '<span class="custo num" id="c-' + idx + '">—</span><button class="x" type="button" data-rm="' + idx + '" aria-label="Tirar ' + esc(nome) + '">' + ICON_X + '</button></div>';
   });
@@ -587,7 +599,7 @@ function vReceita(){
     out += '<div class="pc-linha"><span class="grow"><small>Tempo para fazer a receita inteira</small></span><span class="pct"><input inputmode="decimal" data-p="tempoMin" aria-label="Tempo em minutos" placeholder="0" value="' + esc(campoNum(d.tempoMin)) + '"><span>min</span></span><span class="pc-val"></span></div>';
     out += '<div class="pc-linha"><span class="grow"><small>Quanto vale sua hora</small></span><span class="pct"><span>R$</span><input inputmode="decimal" data-p="valorHora" aria-label="Valor da hora em reais" placeholder="0" value="' + esc(campoNum(p.valorHora, 2)) + '"></span><span class="num pc-val" id="v-mao">—</span></div>';
   } else {
-    out += '<div class="pc-linha"><span class="grow"><small>Nível ' + difLabel(d.dificuldade) + '</small></span><span class="pct"><input inputmode="decimal" data-p="mao" aria-label="Mão de obra em %" value="' + esc(campoNum(p.mao)) + '"><span>%</span></span><span class="num pc-val" id="v-mao">—</span></div>';
+    out += '<div class="pc-linha"><span class="grow"><small>' + (d.dificuldade ? 'Nível ' + difLabel(d.dificuldade) : 'Dificuldade não escolhida (usando Médio)') + '</small></span><span class="pct"><input inputmode="decimal" data-p="mao" aria-label="Mão de obra em %" value="' + esc(campoNum(p.mao)) + '"><span>%</span></span><span class="num pc-val" id="v-mao">—</span></div>';
   }
   out += linhaPct('lucro', 'Lucro', 'Retorno desejado', p.lucro);
   out += linhaPct('taxa', 'Taxa de venda', 'Cartão, app de entrega, link', p.taxa);
@@ -681,7 +693,7 @@ function atualizaCalc(){
   set('s-lucro', c.preco != null ? brl(c.lucroUn) : '—');
   set('s-margem', c.preco != null ? pctTxt(c.margem) : '—');
   set('s-mult', c.mult != null ? c.mult.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'x o custo' : '—');
-  document.querySelectorAll('[data-dif]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-dif') === (d.dificuldade || 'medio'))); });
+  document.querySelectorAll('[data-dif]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-dif') === d.dificuldade)); });
   var p = document.getElementById('p-preco'); if (p) p.textContent = c.preco != null ? brl(c.preco) : '—';
   var v = document.getElementById('p-venda'), l = document.getElementById('p-lucro');
   if (v && l){
@@ -729,8 +741,8 @@ function ir(v){ S.view = v; S.confirma = false; S.erro = ''; S.selIng = null; S.
 function abrirReceita(id){
   var r = id ? S.recs[id] : null;
   var pc = {}; if (r && r.pcts) for (var k in r.pcts) if (r.pcts[k] != null) pc[k] = r.pcts[k];
-  S.draft = r ? { id: r.id, nome: r.nome || '', rende: r.rende == null ? null : r.rende, itens: (r.itens||[]).map(function(it){ return { ingId: it.ingId, qtd: it.qtd == null ? null : it.qtd }; }), tempo: r.tempo || '', preparo: r.preparo || '', obs: r.obs || '',
-                  categoria: r.categoria || '', durab: r.durab == null ? null : r.durab, dificuldade: r.dificuldade || 'medio', maoModo: r.maoModo || 'pct', tempoMin: r.tempoMin == null ? null : r.tempoMin, pcts: pc }
+  S.draft = r ? { id: r.id, nome: r.nome || '', rende: r.rende == null ? null : r.rende, itens: (r.itens||[]).map(function(it){ return { ingId: it.ingId, qtd: it.qtd == null ? null : it.qtd, grupo: it.grupo || '' }; }), tempo: r.tempo || '', preparo: r.preparo || '', obs: r.obs || '',
+                  categoria: r.categoria || '', durab: r.durab == null ? null : r.durab, dificuldade: r.dificuldade || null, maoModo: r.maoModo || 'pct', tempoMin: r.tempoMin == null ? null : r.tempoMin, pcts: pc }
               : { id: null, nome: '', rende: 10, itens: [], tempo: '', preparo: '', obs: '', categoria: '', durab: null, dificuldade: 'medio', maoModo: 'pct', tempoMin: null, pcts: {} };
   ir('receita');
 }
@@ -771,7 +783,7 @@ function salvarReceita(){
   var nome = d.nome.trim();
   if (!nome){ S.erro = 'Dê um nome para a receita antes de salvar.'; render(); document.getElementById('r-nome').focus(); return; }
   var id = d.id || novoId('receitas');
-  var doc = { id: id, nome: nome, rende: d.rende, itens: d.itens.map(function(it){ return { ingId: it.ingId, qtd: it.qtd }; }), tempo: d.tempo.trim(), preparo: d.preparo, obs: d.obs,
+  var doc = { id: id, nome: nome, rende: d.rende, itens: d.itens.map(function(it){ return { ingId: it.ingId, qtd: it.qtd, grupo: it.grupo || '' }; }), tempo: d.tempo.trim(), preparo: d.preparo, obs: d.obs,
     categoria: d.categoria.trim(), durab: d.durab, dificuldade: d.dificuldade, maoModo: d.maoModo, tempoMin: d.tempoMin, pcts: d.pcts, atualizado: new Date().toISOString() };
   S.recs[id] = doc;
   gravar('receitas/' + id, doc).then(function(){ toast('Receita salva'); }).catch(falhou);
@@ -912,6 +924,185 @@ function aoEscolherPlanilha(input){
   });
 }
 
+/* ---------- importar receita em PDF ---------- */
+var PDFJS_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+var PDFJS_WORKER = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+function carregaPdfjs(){
+  return new Promise(function(ok, falha){
+    if (window.pdfjsLib) return ok(window.pdfjsLib);
+    var s = document.createElement('script'); s.src = PDFJS_URL;
+    s.onload = function(){
+      if (!window.pdfjsLib) return falha({ code:'leitor' });
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+      ok(window.pdfjsLib);
+    };
+    s.onerror = function(){ falha({ code:'leitor' }); };
+    document.head.appendChild(s);
+  });
+}
+// Junta os pedaços de texto de cada página em linhas, pela posição vertical.
+function textoDoPdf(arquivo){
+  return carregaPdfjs().then(function(lib){
+    return arquivo.arrayBuffer().then(function(buf){ return lib.getDocument({ data: new Uint8Array(buf) }).promise; });
+  }).then(function(pdf){
+    var ps = [];
+    for (var i = 1; i <= pdf.numPages; i++) ps.push(pdf.getPage(i).then(function(pg){ return pg.getTextContent(); }));
+    return Promise.all(ps);
+  }).then(function(conteudos){
+    var linhas = [];
+    conteudos.forEach(function(c){
+      var grupos = [];
+      c.items.forEach(function(it){
+        if (!it.str || !it.str.trim()) return;
+        var y = it.transform[5], x = it.transform[4];
+        var g = null;
+        for (var k = 0; k < grupos.length; k++) if (Math.abs(grupos[k].y - y) <= 2.5){ g = grupos[k]; break; }
+        if (!g){ g = { y: y, itens: [] }; grupos.push(g); }
+        g.itens.push({ x: x, w: it.width || 0, s: it.str });
+      });
+      grupos.sort(function(a, b){ return b.y - a.y; });
+      grupos.forEach(function(g){
+        g.itens.sort(function(a, b){ return a.x - b.x; });
+        var txt = '', fim = null;
+        g.itens.forEach(function(p){
+          if (fim != null && p.x - fim > 1.5 && !/\s$/.test(txt) && !/^\s/.test(p.s)) txt += ' ';
+          txt += p.s; fim = p.x + p.w;
+        });
+        linhas.push(txt);
+      });
+    });
+    return linhas;
+  });
+}
+function capital(t){ t = String(t || '').toLowerCase().replace(/\s+/g, ' ').trim(); return t.charAt(0).toUpperCase() + t.slice(1); }
+function tituloNome(t){
+  var miudas = { de:1, da:1, do:1, das:1, dos:1, e:1, com:1, em:1, a:1, o:1 };
+  return String(t || '').toLowerCase().replace(/\s+/g, ' ').trim().split(' ').map(function(p, i){
+    return (i > 0 && miudas[p]) ? p : p.charAt(0).toUpperCase() + p.slice(1);
+  }).join(' ');
+}
+var MARCADOR = /^[•●▪◦·–\-\*]\s*/;
+function interpretarReceita(linhasBrutas){
+  var L = linhasBrutas.map(function(l){ return String(l).replace(/\s+/g, ' ').trim(); })
+    .filter(function(l){ return l && !/^licensed to/i.test(l) && !/^p[aá]gina \d+/i.test(l); });
+  var r = { nome:'', itens:[], passos:[], rende:null, durab:null, obs:[] };
+  var modo = 'inicio', grupo = '', ultimo = null;
+  L.forEach(function(l){
+    var n = normTxt(l);
+    if (!r.nome){ r.nome = tituloNome(l.replace(/:\s*$/, '')); return; }
+    var mRend = l.match(/^RENDIMENTO\s*:?\s*(\d+(?:[.,]\d+)?)/i);
+    if (mRend){ r.rende = num(mRend[1]); modo = 'fim'; return; }
+    var mDur = l.match(/^DURABILIDADE\s*:?\s*(\d+)/i);
+    if (mDur){ r.durab = Number(mDur[1]); modo = 'fim'; return; }
+    if (/^(rendimento|durabilidade)\b/.test(n)){ r.obs.push(capital(l)); modo = 'fim'; return; }
+    if (/^ingr[a-z]*$/.test(n)){ modo = 'ing'; grupo = ''; return; }
+    if (/^modo (de )?preparo$/.test(n) || /^preparo$/.test(n)){ modo = 'prep'; grupo = ''; ultimo = null; return; }
+    if (modo === 'fim'){ r.obs.push(capital(l)); return; }
+    var ehTitulo = /:\s*$/.test(l) && !MARCADOR.test(l) && !/^\d/.test(l);
+    if (modo === 'ing'){
+      if (ehTitulo){ grupo = capital(l.replace(/:\s*$/, '')); return; }
+      var t = l.replace(MARCADOR, '');
+      var m = t.match(/^(\d+(?:[.,]\d+)?)\s*(KG|KGS|GRAMAS?|GRS?|G|ML|LITROS?|LTS?|L|UNIDADES?|UNID|UND|UN)\.?\s+(?:DE\s+)?(.+)$/i) ||
+              t.match(/^(\d+(?:[.,]\d+)?)\s+()(.+)$/);
+      if (m){
+        var u = m[2] ? unidadeDe(m[2]) : { un:'un', fator:1 };
+        var q = num(m[1]);
+        r.itens.push({ grupo: grupo, nome: capital(m[3]), qtd: q == null ? null : Math.round(q * (u.fator || 1) * 1000) / 1000, un: u.un || 'un' });
+      } else {
+        r.itens.push({ grupo: grupo, nome: capital(t), qtd: null, un: 'g' });
+      }
+      return;
+    }
+    if (modo === 'prep'){
+      if (ehTitulo){ grupo = capital(l.replace(/:\s*$/, '')); r.passos.push({ titulo: grupo }); ultimo = null; return; }
+      var mp = l.match(/^(\d+)\s*[.)\-]\s*(.*)$/);
+      if (mp){ ultimo = { n: mp[1], t: mp[2] }; r.passos.push(ultimo); return; }
+      var tx = l.replace(MARCADOR, '');
+      if (ultimo) ultimo.t += ' ' + tx; else { ultimo = { n:'', t: tx }; r.passos.push(ultimo); }
+    }
+  });
+  r.preparo = r.passos.map(function(p){
+    return p.titulo ? '\n' + p.titulo + ':' : (p.n ? p.n + '. ' : '') + capital(p.t);
+  }).join('\n').trim();
+  return r;
+}
+function salvarImportada(d){
+  var agora = new Date().toISOString(), porNome = {}, novosIng = [];
+  lista(S.ings).forEach(function(i){ porNome[normTxt(i.nome)] = i; });
+  var itens = d.itens.map(function(it){
+    var k = normTxt(it.nome), ing = porNome[k];
+    if (!ing){
+      ing = { id: novoId(), nome: it.nome, preco: null, emb: null, un: it.un, atualizado: agora };
+      porNome[k] = ing; S.ings[ing.id] = ing; novosIng.push(ing);
+    }
+    return { ingId: ing.id, qtd: it.qtd, grupo: it.grupo || '' };
+  });
+  var existente = lista(S.recs).filter(function(x){ return normTxt(x.nome) === normTxt(d.nome); })[0];
+  var b = existente || {};
+  var id = existente ? existente.id : novoId();
+  var rec = {
+    id: id, nome: existente ? existente.nome : d.nome,
+    rende: d.rende != null ? d.rende : (b.rende == null ? null : b.rende),
+    itens: itens, tempo: b.tempo || '', preparo: d.preparo || b.preparo || '',
+    obs: d.obs.length ? d.obs.join('\n') : (b.obs || ''),
+    categoria: b.categoria || '', durab: d.durab != null ? d.durab : (b.durab == null ? null : b.durab),
+    dificuldade: b.dificuldade || null, maoModo: b.maoModo || 'pct', tempoMin: b.tempoMin == null ? null : b.tempoMin,
+    pcts: b.pcts || {}, origem: 'pdf', atualizado: agora
+  };
+  S.recs[id] = rec;
+  var p = novosIng.length
+    ? sb.from('ingredientes').upsert(novosIng.map(function(i){ return { owner: uid, id: i.id, dados: i, updated_at: agora }; }), { onConflict:'owner,id' }).then(function(r){ if (r.error) throw r.error; })
+    : Promise.resolve();
+  return p.then(function(){ return gravar('receitas/' + id, rec); }).then(function(){ return { id: id, novos: novosIng.length, atualizada: !!existente }; });
+}
+function aoEscolherPdfs(input){
+  var arquivos = Array.prototype.slice.call(input.files || []); input.value = '';
+  if (!arquivos.length) return;
+  toast(arquivos.length === 1 ? 'Lendo o PDF…' : 'Lendo ' + arquivos.length + ' PDFs…');
+  var feitas = [], falhas = [];
+  arquivos.reduce(function(p, f){
+    return p.then(function(){
+      return textoDoPdf(f).then(function(linhas){
+        var dados = interpretarReceita(linhas);
+        if (!dados.nome || (!dados.itens.length && !dados.preparo)) throw { code:'vazio' };
+        return salvarImportada(dados).then(function(res){ feitas.push(res); });
+      }).catch(function(e){
+        if (window.console) console.error(e);
+        if (e && e.code === 'leitor') throw e;
+        falhas.push(f.name);
+      });
+    });
+  }, Promise.resolve()).then(function(){
+    var novosIng = feitas.reduce(function(s, x){ return s + x.novos; }, 0);
+    var extra = novosIng ? ' e ' + novosIng + (novosIng === 1 ? ' ingrediente novo' : ' ingredientes novos') : '';
+    if (feitas.length === 1 && !falhas.length){
+      abrirReceita(feitas[0].id);
+      toast((feitas[0].atualizada ? 'Receita atualizada' : 'Receita cadastrada') + extra + '. Complete o que tem "!".');
+    } else {
+      S.filtro = 'pend'; ir('receitas');
+      toast(feitas.length + (feitas.length === 1 ? ' receita importada' : ' receitas importadas') + extra + (falhas.length ? '. Não consegui ler: ' + falhas.join(', ') : ''));
+    }
+  }).catch(function(e){
+    toast(e && e.code === 'leitor' ? 'Não consegui abrir o leitor de PDF. Confira a internet e tente de novo.' : 'Não consegui ler esse PDF.');
+    if (feitas.length) render();
+  });
+}
+function pendencias(r){
+  var p = [], itens = r.itens || [];
+  if (!String(r.categoria || '').trim()) p.push('categoria');
+  if (!(r.rende > 0)) p.push('rendimento');
+  if (r.durab == null) p.push('durabilidade');
+  if (!r.dificuldade) p.push('dificuldade');
+  if (!itens.length) p.push('ingredientes');
+  var semQtd = itens.filter(function(it){ return it.qtd == null; }).length;
+  if (semQtd) p.push(semQtd === 1 ? 'quantidade de 1 ingrediente' : 'quantidade de ' + semQtd + ' ingredientes');
+  var semPreco = itens.filter(function(it){ var i = S.ings[it.ingId]; return !i || i.preco == null || !(i.emb > 0); }).length;
+  if (semPreco) p.push(semPreco === 1 ? 'preço de 1 ingrediente' : 'preço de ' + semPreco + ' ingredientes');
+  if (!String(r.preparo || '').trim()) p.push('modo de preparo');
+  return p;
+}
+var EXCL = '<span class="excl" aria-hidden="true">!</span>';
+
 function salvarIngrediente(){
   var d = S.ingDraft;
   // lê direto dos campos, para não perder o que o teclado ou o preenchimento automático digitou
@@ -999,6 +1190,7 @@ document.addEventListener('click', function(ev){
     ir('inicio'); return;
   }
   if (t.id === 'compras'){ ir('compras'); return; }
+  if (t.id === 'importar-pdf'){ var fp = document.getElementById('arquivo-pdf'); if (fp) fp.click(); return; }
   if (t.id === 'importar'){ var fi = document.getElementById('arquivo-planilha'); if (fi) fi.click(); return; }
   if (t.id === 'confirmar-import' && S.importacao){ confirmarImportacao(); return; }
   if (t.id === 'voltar' && S.view === 'importar'){ S.importacao = null; ir('ingredientes'); return; }
@@ -1059,6 +1251,7 @@ document.addEventListener('submit', function(ev){
 });
 document.addEventListener('change', function(ev){
   if (ev.target.id === 'arquivo-planilha'){ aoEscolherPlanilha(ev.target); return; }
+  if (ev.target.id === 'arquivo-pdf'){ aoEscolherPdfs(ev.target); return; }
   if (ev.target.hasAttribute('data-sel') && S.selIng){
     var sid = ev.target.getAttribute('data-sel');
     if (ev.target.checked) S.selIng[sid] = true; else delete S.selIng[sid];
