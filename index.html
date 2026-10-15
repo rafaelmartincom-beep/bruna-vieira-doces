@@ -160,6 +160,10 @@ textarea.entrada{height:auto;min-height:140px;padding:12px 14px;line-height:1.5;
 .cp-linha .dir b{display:block;color:var(--tinta);font-size:14px;font-weight:600}
 .nota{background:var(--suave);border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.55;color:var(--apagado)}
 .nota strong{color:var(--tinta)}
+.marcavel{cursor:pointer}
+.marcavel input.marca{width:22px;height:22px;accent-color:var(--grena);flex-shrink:0;margin:0}
+.marcavel:has(input:checked){background:var(--rosado)}
+.painel-in small{line-height:1.45}
 .faixa{background:var(--rosado);color:var(--grena);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:500}
 @media (prefers-reduced-motion: no-preference){.toast{animation:sobe .2s ease-out}@keyframes sobe{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}}
 </style>
@@ -474,28 +478,70 @@ function listaReceitas(){
 }
 
 function vIngredientes(){
-  var out = '<div class="row between"><div class="stack" style="gap:2px"><h1>Ingredientes</h1><span class="sub">Mudou o preço aqui, muda em todas as receitas.</span></div><button class="fab" type="button" data-new="ing" aria-label="Novo ingrediente">' + ICON_MAIS + '</button></div>';
-  out += '<div class="row" style="gap:10px;flex-wrap:wrap"><button class="btn2" type="button" id="importar" style="flex:1 1 180px">Importar planilha Excel</button><a class="link" href="modelo-ingredientes.xlsx" download style="display:flex;align-items:center;text-decoration:none">Baixar modelo</a><input type="file" id="arquivo-planilha" accept=".xlsx,.xls,.csv" hidden></div>';
-  out += '<label class="busca">' + ICON_BUSCA + '<input id="busca-ing" type="search" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente" value="' + esc(S.buscaIng) + '"></label>';
+  var sel = !!S.selIng, temIng = lista(S.ings).length > 0;
+  var out = '<div class="row between"><div class="stack" style="gap:2px"><h1>Ingredientes</h1><span class="sub">' + (sel ? 'Marque os ingredientes que quer excluir.' : 'Mudou o preço aqui, muda em todas as receitas.') + '</span></div>' + (sel ? '' : '<button class="fab" type="button" data-new="ing" aria-label="Novo ingrediente">' + ICON_MAIS + '</button>') + '</div>';
+  if (!sel){
+    out += '<div class="row" style="gap:10px;flex-wrap:wrap"><button class="btn2" type="button" id="importar" style="flex:1 1 180px">Importar planilha Excel</button><a class="link" href="modelo-ingredientes.xlsx" download style="display:flex;align-items:center;text-decoration:none">Baixar modelo</a><input type="file" id="arquivo-planilha" accept=".xlsx,.xls,.csv" hidden></div>';
+  }
+  out += '<div class="row" style="gap:10px"><label class="busca grow">' + ICON_BUSCA + '<input id="busca-ing" type="search" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente" value="' + esc(S.buscaIng) + '"></label>' +
+    (temIng && !sel ? '<button class="btn2" type="button" id="sel-modo" style="flex-shrink:0">Selecionar</button>' : '') +
+    (sel ? '<button class="btn2" type="button" id="sel-todos" style="flex-shrink:0">Marcar todos</button>' : '') + '</div>';
   out += '<div id="lista-ing">' + listaIngredientes() + '</div>';
+  if (sel) out += '<div class="painel" id="barra-sel">' + barraSel() + '</div>';
   return out;
 }
-function listaIngredientes(){
-  var ings = lista(S.ings);
-  if (!ings.length) return '<div class="vazio"><p>Nenhum ingrediente ainda. Cadastre com o preço pago e o tamanho da embalagem.</p><button class="btn" type="button" data-new="ing">Cadastrar ingrediente</button></div>';
+function ingsFiltrados(){
   var b = S.buscaIng.trim().toLowerCase();
   // primeiro o que precisa de atenção, depois por nome
   var peso = function(i){ return i.preco == null ? 0 : dias(i.atualizado) > 60 ? 1 : 2; };
-  var f = ings.filter(function(i){ return !b || String(i.nome||'').toLowerCase().indexOf(b) >= 0; })
+  return lista(S.ings).filter(function(i){ return !b || String(i.nome||'').toLowerCase().indexOf(b) >= 0; })
     .sort(function(a,c){ return peso(a) - peso(c) || ordenaNome(a,c); });
+}
+function listaIngredientes(){
+  if (!lista(S.ings).length) return '<div class="vazio"><p>Nenhum ingrediente ainda. Cadastre com o preço pago e o tamanho da embalagem.</p><button class="btn" type="button" data-new="ing">Cadastrar ingrediente</button></div>';
+  var f = ingsFiltrados();
   if (!f.length) return '<div class="vazio"><p>Nenhum ingrediente com esse nome.</p></div>';
   return f.map(function(i){
     var emb = campoNum(i.emb) + ' ' + unidadeTxt(i.un);
     var info = i.preco == null ? 'Embalagem de ' + emb : emb + ' por ' + brl(i.preco);
     var d = dias(i.atualizado);
     var marca = i.preco == null ? '<span class="tag">Falta o preço</span>' : d > 60 ? '<span class="tag">Há ' + d + ' dias</span>' : '<span class="sub" style="font-size:11px">' + esc(quando(i.atualizado)) + '</span>';
-    return '<button class="item" type="button" data-ing="' + esc(i.id) + '"><span class="grow stack" style="gap:3px"><span class="nome">' + esc(i.nome) + '</span><span class="info">' + esc(info) + '</span></span><span class="stack" style="gap:3px;align-items:flex-end"><span class="num" style="font-weight:600">' + (porUnidade(i) || '—') + '</span>' + marca + '</span></button>';
+    var corpo = '<span class="grow stack" style="gap:3px"><span class="nome">' + esc(i.nome) + '</span><span class="info">' + esc(info) + '</span></span><span class="stack" style="gap:3px;align-items:flex-end"><span class="num" style="font-weight:600">' + (porUnidade(i) || '—') + '</span>' + marca + '</span>';
+    if (S.selIng){
+      return '<label class="item marcavel"><input type="checkbox" class="marca" data-sel="' + esc(i.id) + '"' + (S.selIng[i.id] ? ' checked' : '') + ' aria-label="Marcar ' + esc(i.nome) + '">' + corpo + '</label>';
+    }
+    return '<button class="item" type="button" data-ing="' + esc(i.id) + '">' + corpo + '</button>';
   }).join('');
+}
+function qtdSel(){ return S.selIng ? Object.keys(S.selIng).filter(function(k){ return S.selIng[k]; }).length : 0; }
+function receitasAfetadas(ids){
+  var mapa = {}; ids.forEach(function(id){ mapa[id] = 1; });
+  return lista(S.recs).filter(function(r){ return (r.itens || []).some(function(it){ return mapa[it.ingId]; }); });
+}
+function barraSel(){
+  var n = qtdSel();
+  if (S.confirmaLote && n){
+    var ids = Object.keys(S.selIng).filter(function(k){ return S.selIng[k]; });
+    var afet = receitasAfetadas(ids);
+    return '<div class="painel-in"><strong style="font-size:16px">Excluir ' + n + (n === 1 ? ' ingrediente?' : ' ingredientes?') + '</strong>' +
+      '<small>' + (afet.length ? (afet.length === 1 ? '1 receita usa' : afet.length + ' receitas usam') + ' algum deles e vai ficar sem preço até você trocar: ' + esc(afet.map(function(r){ return r.nome; }).slice(0, 4).join(', ')) + (afet.length > 4 ? '…' : '') + '.' : 'Nenhuma receita usa esses ingredientes.') + ' Não dá para desfazer.</small>' +
+      '<div class="row" style="gap:10px"><button class="btn-branco" type="button" id="sel-sim">Excluir ' + n + '</button><button type="button" id="sel-nao" style="height:52px;border-radius:14px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;font-weight:600;padding:0 18px">Voltar</button></div></div>';
+  }
+  return '<div class="painel-in"><div class="row between"><strong style="font-size:16px">' + (n === 0 ? 'Nenhum marcado' : n === 1 ? '1 marcado' : n + ' marcados') + '</strong><button type="button" id="sel-cancelar" style="background:none;border:0;color:#fff;font-weight:600;min-height:44px">Cancelar</button></div>' +
+    '<button class="btn-branco" type="button" id="sel-excluir"' + (n ? '' : ' disabled style="opacity:.55"') + '>Excluir marcados</button></div>';
+}
+function atualizaBarra(){ var b = document.getElementById('barra-sel'); if (b) b.innerHTML = barraSel(); }
+function excluirLote(){
+  var ids = Object.keys(S.selIng || {}).filter(function(k){ return S.selIng[k]; });
+  if (!ids.length) return;
+  ids.forEach(function(id){ delete S.ings[id]; });
+  S.selIng = null; S.confirmaLote = false; render();
+  var lotes = []; for (var i = 0; i < ids.length; i += 100) lotes.push(ids.slice(i, i + 100));
+  lotes.reduce(function(p, lote){
+    return p.then(function(){ return sb.from('ingredientes').delete().eq('owner', uid).in('id', lote).then(function(r){ if (r.error) throw r.error; }); });
+  }, Promise.resolve()).then(function(){
+    toast(ids.length === 1 ? '1 ingrediente excluído' : ids.length + ' ingredientes excluídos');
+  }).catch(function(e){ falhou(e); carregar(); });
 }
 
 function vReceita(){
@@ -668,17 +714,17 @@ function atualizaSaiPor(){
 function render(){
   if (!S.logado){ view.className = 'app'; view.innerHTML = vLogin(); abas.hidden = true; return; }
   var editor = ['receita','ingrediente','compras','padroes','importar'].indexOf(S.view) >= 0;
-  view.className = 'app' + (S.view === 'receita' ? ' editor' : '');
+  view.className = 'app' + (S.view === 'receita' || (S.view === 'ingredientes' && S.selIng) ? ' editor' : '');
   var html = S.view === 'inicio' ? vInicio() : S.view === 'receitas' ? vReceitas() : S.view === 'ingredientes' ? vIngredientes() : S.view === 'receita' ? vReceita() + painelReceita() : S.view === 'compras' ? vCompras() : S.view === 'padroes' ? vPadroes() : S.view === 'importar' ? vImportar() : vIngrediente();
   view.innerHTML = html;
-  abas.hidden = editor;
+  abas.hidden = editor || (S.view === 'ingredientes' && !!S.selIng);
   var aba = { receita:'receitas', compras:'receitas', ingrediente:'ingredientes', importar:'ingredientes', padroes:'inicio' }[S.view] || S.view;
   abas.querySelectorAll('[data-go]').forEach(function(b){ if (b.getAttribute('data-go') === aba) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.view === 'receita') atualizaCalc();
   if (S.view === 'compras') atualizaCompras();
   if (S.view === 'ingrediente') atualizaSaiPor();
 }
-function ir(v){ S.view = v; S.confirma = false; S.erro = ''; render(); window.scrollTo(0,0); }
+function ir(v){ S.view = v; S.confirma = false; S.erro = ''; S.selIng = null; S.confirmaLote = false; render(); window.scrollTo(0,0); }
 
 function abrirReceita(id){
   var r = id ? S.recs[id] : null;
@@ -927,6 +973,16 @@ document.addEventListener('click', function(ev){
   if (t.hasAttribute('data-go')){ if (t.hasAttribute('data-filtro')) S.filtro = t.getAttribute('data-filtro'); ir(t.getAttribute('data-go')); return; }
   if (t.hasAttribute('data-filtro')){ S.filtro = t.getAttribute('data-filtro'); render(); return; }
   if (t.hasAttribute('data-rec')){ abrirReceita(t.getAttribute('data-rec')); return; }
+  if (t.id === 'sel-modo'){ S.selIng = {}; S.confirmaLote = false; render(); return; }
+  if (t.id === 'sel-cancelar'){ S.selIng = null; S.confirmaLote = false; render(); return; }
+  if (t.id === 'sel-todos' && S.selIng){
+    var vis = ingsFiltrados(), todos = vis.length > 0 && vis.every(function(i){ return S.selIng[i.id]; });
+    vis.forEach(function(i){ if (todos) delete S.selIng[i.id]; else S.selIng[i.id] = true; });
+    S.confirmaLote = false; document.getElementById('lista-ing').innerHTML = listaIngredientes(); atualizaBarra(); return;
+  }
+  if (t.id === 'sel-excluir' && qtdSel()){ S.confirmaLote = true; atualizaBarra(); return; }
+  if (t.id === 'sel-nao'){ S.confirmaLote = false; atualizaBarra(); return; }
+  if (t.id === 'sel-sim'){ excluirLote(); return; }
   if (t.hasAttribute('data-ing')){ abrirIngrediente(t.getAttribute('data-ing'), t.hasAttribute('data-volta') ? 'receita' : null); return; }
   var nv = t.getAttribute('data-new');
   if (nv === 'rec'){ abrirReceita(null); return; }
@@ -1003,6 +1059,11 @@ document.addEventListener('submit', function(ev){
 });
 document.addEventListener('change', function(ev){
   if (ev.target.id === 'arquivo-planilha'){ aoEscolherPlanilha(ev.target); return; }
+  if (ev.target.hasAttribute('data-sel') && S.selIng){
+    var sid = ev.target.getAttribute('data-sel');
+    if (ev.target.checked) S.selIng[sid] = true; else delete S.selIng[sid];
+    S.confirmaLote = false; atualizaBarra(); return;
+  }
   if (ev.target.id === 'add-ing' && ev.target.value === '__novo') abrirIngrediente(null, 'receita');
 });
 document.addEventListener('input', function(ev){
