@@ -126,7 +126,7 @@ label.campo{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weigh
 
 .abas{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linha);z-index:5;padding-bottom:env(safe-area-inset-bottom, 0px)}
 .abas-in{max-width:480px;margin:0 auto;display:flex;justify-content:space-around;padding:8px max(8px, env(safe-area-inset-left, 0px)) 10px max(8px, env(safe-area-inset-right, 0px))}
-.aba{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:84px;min-height:48px;border:0;background:none;color:var(--apagado);font-size:11px;font-weight:500}
+.aba{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px;min-height:48px;border:0;background:none;color:var(--apagado);font-size:11px;font-weight:500}
 .aba[aria-current="page"]{color:var(--grena);font-weight:600}
 
 .toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:500;z-index:10;max-width:calc(100% - 40px)}
@@ -183,6 +183,7 @@ textarea.entrada{height:auto;min-height:140px;padding:12px 14px;line-height:1.5;
     <button class="aba" data-go="inicio" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Início</button>
     <button class="aba" data-go="receitas" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/></svg>Receitas</button>
     <button class="aba" data-go="ingredientes" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10"/><path d="M8 3v3L6 9v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9l-2-3V3"/><path d="M6 13h12"/></svg>Ingredientes</button>
+    <button class="aba" data-go="orcamentos" type="button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 12h6M9 16h6"/></svg>Orçamentos</button>
   </div>
 </nav>
 <div id="toast" class="toast" hidden role="status"></div>
@@ -192,7 +193,7 @@ textarea.entrada{height:auto;min-height:140px;padding:12px 14px;line-height:1.5;
 <script>
 (function(){
 var sb = null, uid = null;
-var S = { logado:false, nome:'', authNome:'', authPronto:false, authModo:'entrar', authMsg:'', authEmail:'', ocupado:false, loginErro:'', ings:{}, recs:{}, carregou:{i:false,r:false}, semBanco:false, view:'inicio', filtro:'todas', busca:'', buscaIng:'', draft:null, ingDraft:null, ingOrig:null, ingVolta:null, confirma:false, erro:'', cfg:null, cfgDraft:null, compraQtd:100 };
+var S = { logado:false, nome:'', authNome:'', authPronto:false, authModo:'entrar', authMsg:'', authEmail:'', ocupado:false, loginErro:'', ings:{}, recs:{}, carregou:{i:false,r:false}, semBanco:false, view:'inicio', filtro:'todas', busca:'', buscaIng:'', draft:null, ingDraft:null, ingOrig:null, ingVolta:null, confirma:false, erro:'', cfg:null, cfgDraft:null, compraQtd:100, orcs:{}, orcDraft:null, filtroOrc:'todos', empDraft:null, semTabelaOrc:false };
 var view = document.getElementById('view');
 var abas = document.getElementById('abas');
 
@@ -400,7 +401,7 @@ function entrarNoApp(user){
   render(); window.scrollTo(0,0); carregar();
 }
 function saiuDoApp(){
-  uid = null; S.logado = false; S.nome = ''; S.ings = {}; S.recs = {}; S.cfg = null; S.draft = null; S.ingDraft = null; S.cfgDraft = null;
+  uid = null; S.logado = false; S.nome = ''; S.orcs = {}; S.orcDraft = null; S.ings = {}; S.recs = {}; S.cfg = null; S.draft = null; S.ingDraft = null; S.cfgDraft = null;
   S.view = 'inicio'; S.authModo = 'entrar'; render(); window.scrollTo(0,0);
 }
 function sair(){
@@ -725,15 +726,16 @@ function atualizaSaiPor(){
 
 function render(){
   if (!S.logado){ view.className = 'app'; view.innerHTML = vLogin(); abas.hidden = true; return; }
-  var editor = ['receita','ingrediente','compras','padroes','importar'].indexOf(S.view) >= 0;
-  view.className = 'app' + (S.view === 'receita' || (S.view === 'ingredientes' && S.selIng) ? ' editor' : '');
-  var html = S.view === 'inicio' ? vInicio() : S.view === 'receitas' ? vReceitas() : S.view === 'ingredientes' ? vIngredientes() : S.view === 'receita' ? vReceita() + painelReceita() : S.view === 'compras' ? vCompras() : S.view === 'padroes' ? vPadroes() : S.view === 'importar' ? vImportar() : vIngrediente();
+  var editor = ['receita','ingrediente','compras','padroes','importar','orcamento','empresa'].indexOf(S.view) >= 0;
+  view.className = 'app' + (S.view === 'receita' || S.view === 'orcamento' || (S.view === 'ingredientes' && S.selIng) ? ' editor' : '');
+  var html = S.view === 'inicio' ? vInicio() : S.view === 'receitas' ? vReceitas() : S.view === 'ingredientes' ? vIngredientes() : S.view === 'receita' ? vReceita() + painelReceita() : S.view === 'compras' ? vCompras() : S.view === 'padroes' ? vPadroes() : S.view === 'importar' ? vImportar() : S.view === 'orcamentos' ? vOrcamentos() : S.view === 'orcamento' ? vOrcamento() + painelOrc() : S.view === 'empresa' ? vEmpresa() : vIngrediente();
   view.innerHTML = html;
   abas.hidden = editor || (S.view === 'ingredientes' && !!S.selIng);
-  var aba = { receita:'receitas', compras:'receitas', ingrediente:'ingredientes', importar:'ingredientes', padroes:'inicio' }[S.view] || S.view;
+  var aba = { receita:'receitas', compras:'receitas', ingrediente:'ingredientes', importar:'ingredientes', padroes:'inicio', orcamento:'orcamentos', empresa:'orcamentos' }[S.view] || S.view;
   abas.querySelectorAll('[data-go]').forEach(function(b){ if (b.getAttribute('data-go') === aba) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   if (S.view === 'receita') atualizaCalc();
   if (S.view === 'compras') atualizaCompras();
+  if (S.view === 'orcamento') atualizaOrc();
   if (S.view === 'ingrediente') atualizaSaiPor();
 }
 function ir(v){ S.view = v; S.confirma = false; S.erro = ''; S.selIng = null; S.confirmaLote = false; render(); window.scrollTo(0,0); }
@@ -1103,6 +1105,374 @@ function pendencias(r){
 }
 var EXCL = '<span class="excl" aria-hidden="true">!</span>';
 
+/* ---------- orçamentos ---------- */
+var STATUS_ORC = [{ id:'rascunho', label:'Rascunho' }, { id:'enviado', label:'Enviado' }, { id:'aprovado', label:'Aprovado' }, { id:'recusado', label:'Recusado' }];
+var TIPOS_EVENTO = ['Casamento','Aniversário','Aniversário infantil','Chá de bebê','Chá revelação','Batizado','Noivado','Bodas','Formatura','Evento corporativo','Presente','Encomenda'];
+var EMP_PADRAO = {
+  nome: 'Bruna Vieira Doces Finos', whatsapp: '', instagram: '', email: '', cidade: '',
+  validadeDias: 7, sinalPct: 50, pagamento: 'Pix, cartão de débito ou crédito',
+  obs: 'Doces feitos artesanalmente, sob encomenda.\nA data fica reservada somente após o pagamento do sinal.\nO saldo deve ser pago até a data da entrega ou retirada.\nConserve os doces em local fresco e seco, longe do sol.'
+};
+function EMP(){
+  var e = (S.cfg && S.cfg.empresa) || {}, o = {};
+  for (var k in EMP_PADRAO) o[k] = (e[k] != null && e[k] !== '') ? e[k] : EMP_PADRAO[k];
+  return o;
+}
+function numOrc(n){ var s = String(n || 0); while (s.length < 3) s = '0' + s; return s; }
+function dataBR(iso){
+  if (!iso) return '';
+  var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[3] + '/' + m[2] + '/' + m[1];
+  var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('pt-BR');
+}
+function isoDia(d){ var z = function(n){ return (n < 10 ? '0' : '') + n; }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); }
+function validadeOrc(o){
+  var base = new Date(o.criado || Date.now()); base.setDate(base.getDate() + (Number(o.condicoes && o.condicoes.validadeDias) || 0));
+  return isoDia(base);
+}
+function calcOrc(o){
+  var sub = 0;
+  (o.itens || []).forEach(function(it){ if (it.qtd != null && it.unit != null) sub += it.qtd * it.unit; });
+  var taxa = Number(o.taxaEntrega) || 0;
+  var dv = Number(o.desconto && o.desconto.valor) || 0;
+  var desc = (o.desconto && o.desconto.tipo === 'pct') ? sub * dv / 100 : dv;
+  var total = Math.max(0, Math.round((sub + taxa - desc) * 100) / 100);
+  var pct = Number(o.condicoes && o.condicoes.sinalPct) || 0;
+  var sinal = Math.round(total * pct / 100 * 100) / 100;
+  return { sub: sub, taxa: taxa, desc: desc, total: total, sinal: sinal, saldo: Math.round((total - sinal) * 100) / 100, sinalPct: pct };
+}
+function statusLabel(id){ for (var i = 0; i < STATUS_ORC.length; i++) if (STATUS_ORC[i].id === id) return STATUS_ORC[i].label; return 'Rascunho'; }
+
+function vOrcamentos(){
+  var out = '<div class="row between"><h1>Orçamentos</h1><button class="fab" type="button" data-new="orc" aria-label="Novo orçamento">' + ICON_MAIS + '</button></div>';
+  if (S.semTabelaOrc) out += '<div class="faixa">Para salvar orçamentos, falta criar a tabela no Supabase: rode o script <b>supabase/orcamentos.sql</b> no SQL Editor (está no README).</div>';
+  var orcs = lista(S.orcs);
+  var cont = function(st){ return orcs.filter(function(o){ return (o.status || 'rascunho') === st; }).length; };
+  out += '<div class="chips" role="group" aria-label="Filtrar por situação">' +
+    '<button class="chip" type="button" data-fst="todos" aria-pressed="' + (S.filtroOrc === 'todos') + '">Todos <span style="opacity:.75">' + orcs.length + '</span></button>' +
+    STATUS_ORC.map(function(s){ return '<button class="chip" type="button" data-fst="' + s.id + '" aria-pressed="' + (S.filtroOrc === s.id) + '">' + s.label + ' <span style="opacity:.75">' + cont(s.id) + '</span></button>'; }).join('') + '</div>';
+  var f = orcs.filter(function(o){ return S.filtroOrc === 'todos' || (o.status || 'rascunho') === S.filtroOrc; })
+    .sort(function(a, b){ return (b.numero || 0) - (a.numero || 0); });
+  if (!orcs.length){
+    out += '<div class="vazio"><p>Nenhum orçamento ainda. Monte o primeiro com os doces das suas receitas, entrega, sinal e condições, e baixe em PDF para mandar ao cliente.</p><button class="btn" type="button" data-new="orc">Fazer orçamento</button></div>';
+  } else if (!f.length){
+    out += '<div class="vazio"><p>Nenhum orçamento nessa situação.</p></div>';
+  } else {
+    out += '<div>' + f.map(function(o){
+      var c = calcOrc(o), ev = o.evento || {};
+      var info = 'Nº ' + numOrc(o.numero) + (ev.tipo ? ' · ' + ev.tipo : '') + (ev.data ? ' · ' + dataBR(ev.data) : '');
+      return '<button class="item" type="button" data-orc="' + esc(o.id) + '"><span class="grow stack" style="gap:3px"><span class="nome">' + esc((o.cliente && o.cliente.nome) || 'Cliente sem nome') + '</span><span class="info">' + esc(info) + '</span></span><span class="stack" style="gap:3px;align-items:flex-end"><span class="preco" style="font-size:20px">' + brl(c.total) + '</span><span class="tag">' + statusLabel(o.status) + '</span></span></button>';
+    }).join('') + '</div>';
+  }
+  var E = EMP();
+  out += '<button class="item" type="button" id="abrir-empresa" style="border-top:1px solid var(--linha)"><span class="grow stack" style="gap:3px"><span class="nome">Dados da empresa no PDF</span><span class="info">' + esc([E.whatsapp ? 'WhatsApp ' + E.whatsapp : 'WhatsApp não preenchido', E.instagram ? '@' + String(E.instagram).replace(/^@/, '') : ''].filter(Boolean).join(' · ')) + '</span></span>' + ICON_SETA + '</button>';
+  return out;
+}
+
+function abrirOrc(id){
+  var o = id ? S.orcs[id] : null;
+  if (o){
+    S.orcDraft = JSON.parse(JSON.stringify(o));
+  } else {
+    var E = EMP(), maior = 0;
+    lista(S.orcs).forEach(function(x){ if ((x.numero || 0) > maior) maior = x.numero; });
+    S.orcDraft = { id: null, numero: maior + 1, status: 'rascunho', criado: new Date().toISOString(),
+      cliente: { nome:'', telefone:'', email:'' },
+      evento: { tipo:'', data:'', hora:'', entrega:'retirada', local:'', convidados:null },
+      itens: [], taxaEntrega: null, desconto: { tipo:'valor', valor:null },
+      condicoes: { validadeDias: E.validadeDias, sinalPct: E.sinalPct, pagamento: E.pagamento, obs: E.obs } };
+  }
+  ir('orcamento');
+}
+function campoTxt(id, rotulo, valor, extra){
+  return '<label class="campo">' + rotulo + '<input id="' + id + '" class="entrada" value="' + esc(valor) + '"' + (extra || '') + '></label>';
+}
+function vOrcamento(){
+  var o = S.orcDraft, ev = o.evento, cl = o.cliente, cd = o.condicoes;
+  var salvo = o.id && S.orcs[o.id];
+  var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Orçamentos</button>' + (salvo ? '<button class="btn-perigo" type="button" id="excluir">Excluir</button>' : '') + '</div>';
+  if (S.confirma) out += '<div class="confirma"><strong>Excluir este orçamento?</strong><span class="sub">Não dá para desfazer.</span><div class="row"><button type="button" id="sim-excluir" style="background:var(--grena);color:#fff">Excluir</button><button type="button" id="nao-excluir" style="background:#fff">Cancelar</button></div></div>';
+  out += '<div class="stack" style="gap:2px"><span class="sub">Orçamento nº ' + numOrc(o.numero) + ' · ' + dataBR(o.criado) + '</span><h1>' + esc(cl.nome || 'Novo orçamento') + '</h1></div>';
+  if (S.erro) out += '<div class="erro" role="alert">' + esc(S.erro) + '</div>';
+  out += '<div class="chips" role="group" aria-label="Situação">' + STATUS_ORC.map(function(s){ return '<button class="chip" type="button" data-st="' + s.id + '" aria-pressed="' + ((o.status || 'rascunho') === s.id) + '">' + s.label + '</button>'; }).join('') + '</div>';
+
+  out += '<section class="stack"><h2>Cliente</h2>' +
+    campoTxt('o-cli-nome', 'Nome', cl.nome, ' autocomplete="off" placeholder="Nome do cliente"') +
+    '<div class="cards2">' + campoTxt('o-cli-tel', 'WhatsApp', cl.telefone, ' type="tel" inputmode="tel" placeholder="(11) 90000-0000"') + campoTxt('o-cli-email', 'E-mail', cl.email, ' type="email" placeholder="opcional"') + '</div></section>';
+
+  out += '<section class="stack"><h2>Evento</h2>' +
+    '<label class="campo">Tipo de evento<input id="o-ev-tipo" class="entrada" list="tipos-evento" placeholder="Ex.: Casamento" value="' + esc(ev.tipo) + '"></label><datalist id="tipos-evento">' + TIPOS_EVENTO.map(function(t){ return '<option value="' + esc(t) + '"></option>'; }).join('') + '</datalist>' +
+    '<div class="cards2">' + campoTxt('o-ev-data', 'Data', ev.data, ' type="date"') + campoTxt('o-ev-hora', 'Horário', ev.hora, ' type="time"') + '</div>' +
+    '<div class="seg" role="group" aria-label="Entrega ou retirada" style="width:100%"><button type="button" data-ent="retirada" aria-pressed="' + (ev.entrega !== 'entrega') + '" style="flex:1">Retirada</button><button type="button" data-ent="entrega" aria-pressed="' + (ev.entrega === 'entrega') + '" style="flex:1">Entrega</button></div>' +
+    campoTxt('o-ev-local', 'Local do evento ou endereço de entrega', ev.local, ' placeholder="Opcional"') +
+    campoTxt('o-ev-conv', 'Número de convidados', campoNum(ev.convidados), ' inputmode="numeric" placeholder="Opcional" style="max-width:160px"') + '</section>';
+
+  out += '<section class="stack" style="gap:0"><h2 style="padding-bottom:6px">Doces e itens</h2>';
+  if (!o.itens.length) out += '<p class="sub" style="margin:0 0 10px">Adicione os doces das suas receitas (o preço sugerido já vem preenchido) ou itens avulsos, como embalagem especial ou taxa de montagem.</p>';
+  o.itens.forEach(function(it, i){
+    out += '<div style="border-bottom:1px solid var(--linha);padding:10px 0;display:flex;flex-direction:column;gap:8px">' +
+      '<div class="row" style="gap:8px"><input class="entrada grow" style="height:44px;font-size:15px" data-it-desc="' + i + '" aria-label="Descrição do item" placeholder="Descrição" value="' + esc(it.desc) + '"><button class="x" type="button" data-it-rm="' + i + '" aria-label="Tirar item">' + ICON_X + '</button></div>' +
+      '<div class="row" style="gap:8px;flex-wrap:wrap"><span class="pct"><input inputmode="decimal" data-it-qtd="' + i + '" aria-label="Quantidade" placeholder="0" value="' + esc(campoNum(it.qtd)) + '"><span>un</span></span><span class="sub">×</span>' +
+      '<span class="pct"><span>R$</span><input inputmode="decimal" data-it-unit="' + i + '" aria-label="Valor unitário" placeholder="0,00" value="' + esc(campoNum(it.unit, 2)) + '" style="width:64px"></span>' +
+      '<span class="grow num" style="text-align:right;font-weight:600" id="it-sub-' + i + '">—</span></div>' +
+      (it.sugerido != null ? '<span class="sub" style="font-size:12px">Preço sugerido pela receita: ' + brl(it.sugerido) + ' por unidade</span>' : '') + '</div>';
+  });
+  var recs = lista(S.recs).sort(ordenaNome);
+  out += '<div class="add" style="margin-top:12px"><select id="o-add-rec" aria-label="Escolher doce"><option value="">Adicionar doce das receitas…</option>' +
+    recs.map(function(r){ var c = calc(r); return '<option value="' + esc(r.id) + '">' + esc(r.nome) + (c.preco != null ? ' · ' + brl(c.preco) + '/un' : '') + '</option>'; }).join('') +
+    '</select><button class="btn2" type="button" id="add-rec">Adicionar</button></div>' +
+    '<button class="link" type="button" id="add-avulso" style="align-self:flex-start">+ Item avulso</button></section>';
+
+  out += '<section class="stack" style="gap:0"><h2 style="padding-bottom:4px">Valores</h2>' +
+    '<div class="pc-linha"><span class="grow"><strong>Subtotal</strong></span><span class="num pc-val" id="o-sub">—</span></div>' +
+    '<div class="pc-linha"><span class="grow"><strong>Taxa de entrega</strong><small>Deixe vazio se for retirada</small></span><span class="pct"><span>R$</span><input inputmode="decimal" id="o-taxa" aria-label="Taxa de entrega" placeholder="0,00" value="' + esc(campoNum(o.taxaEntrega, 2)) + '"></span></div>' +
+    '<div class="pc-linha"><span class="grow"><strong>Desconto</strong></span><div class="seg mini-seg" role="group" aria-label="Tipo de desconto"><button type="button" data-dtipo="valor" aria-pressed="' + (o.desconto.tipo !== 'pct') + '">R$</button><button type="button" data-dtipo="pct" aria-pressed="' + (o.desconto.tipo === 'pct') + '">%</button></div><span class="pct"><input inputmode="decimal" id="o-desc" aria-label="Desconto" placeholder="0" value="' + esc(campoNum(o.desconto.valor, o.desconto.tipo === 'pct' ? null : 2)) + '"></span></div>' +
+    '</section>';
+
+  out += '<section class="stack"><h2>Condições</h2>' +
+    '<div class="cards2">' + campoTxt('o-validade', 'Validade (dias)', campoNum(cd.validadeDias), ' inputmode="numeric"') + campoTxt('o-sinal', 'Sinal para reservar (%)', campoNum(cd.sinalPct), ' inputmode="decimal"') + '</div>' +
+    campoTxt('o-pag', 'Formas de pagamento', cd.pagamento, '') +
+    '<label class="campo">Observações para o cliente<textarea id="o-obs" class="entrada" rows="5">' + esc(cd.obs) + '</textarea></label></section>';
+  return out;
+}
+function painelOrc(){
+  var podeCompartilhar = !!(navigator.share && navigator.canShare);
+  return '<div class="painel" id="painel"><div class="painel-in"><div class="row between" style="align-items:flex-end"><div class="stack" style="gap:2px"><small>Total do orçamento</small><span class="grande" id="o-total" style="font-size:36px;white-space:nowrap">—</span></div><div class="lado" style="white-space:nowrap"><span id="o-sinal-v"></span><span id="o-saldo-v"></span></div></div>' +
+    '<div class="row" style="gap:10px"><button class="btn-branco" type="button" id="pdf-orc" style="flex:1">Baixar PDF</button>' +
+    (podeCompartilhar ? '<button type="button" id="share-orc" style="flex:1;height:52px;border-radius:14px;border:1px solid rgba(255,255,255,.6);background:transparent;color:#fff;font-weight:600">Enviar</button>' : '') +
+    '<button type="button" id="salvar-orc" style="height:52px;border-radius:14px;border:1px solid rgba(255,255,255,.6);background:transparent;color:#fff;font-weight:600;padding:0 16px">Salvar</button></div></div></div>';
+}
+function atualizaOrc(){
+  if (S.view !== 'orcamento' || !S.orcDraft) return;
+  var o = S.orcDraft, c = calcOrc(o);
+  o.itens.forEach(function(it, i){ set('it-sub-' + i, (it.qtd != null && it.unit != null) ? brl(it.qtd * it.unit) : '—'); });
+  set('o-sub', brl(c.sub));
+  set('o-total', brl(c.total));
+  set('o-sinal-v', c.sinalPct ? 'Sinal (' + campoNum(c.sinalPct) + '%) ' + brl(c.sinal) : '');
+  set('o-saldo-v', c.sinalPct ? 'Saldo ' + brl(c.saldo) : '');
+}
+function validaOrc(){
+  var o = S.orcDraft;
+  if (!String(o.cliente.nome || '').trim()) return 'Digite o nome do cliente.';
+  if (!o.itens.length) return 'Adicione pelo menos um doce ou item.';
+  var ruim = o.itens.filter(function(it){ return !String(it.desc || '').trim() || !(it.qtd > 0) || it.unit == null; }).length;
+  if (ruim) return ruim === 1 ? '1 item está sem descrição, quantidade ou valor.' : ruim + ' itens estão sem descrição, quantidade ou valor.';
+  return '';
+}
+function salvarOrc(silencioso){
+  var erro = validaOrc();
+  if (erro){ S.erro = erro; render(); window.scrollTo(0, 0); return Promise.reject({ code:'validacao' }); }
+  var o = S.orcDraft;
+  if (!o.id) o.id = novoId();
+  o.atualizado = new Date().toISOString();
+  o.cliente.nome = o.cliente.nome.trim();
+  var doc = JSON.parse(JSON.stringify(o));
+  S.orcs[o.id] = doc; S.erro = '';
+  var el = view.querySelector('.erro'); if (el) el.remove();
+  var ex = document.getElementById('excluir'); if (!ex) render();
+  return gravar('orcamentos/' + o.id, doc).then(function(){ if (!silencioso) toast('Orçamento salvo'); }).catch(function(e){
+    var m = String((e && e.message) || '');
+    if (/orcamentos/.test(m) || (e && e.code === '42P01')){ S.semTabelaOrc = true; toast('Falta criar a tabela de orçamentos no Supabase (veja o README).'); }
+    else falhou(e);
+    throw e;
+  });
+}
+
+/* ---------- PDF do orçamento ---------- */
+var JSPDF_URL = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+function carregaScript(url, pronto){
+  return new Promise(function(ok, falha){
+    if (pronto()) return ok();
+    var s = document.createElement('script'); s.src = url;
+    s.onload = function(){ pronto() ? ok() : falha({ code:'leitor' }); };
+    s.onerror = function(){ falha({ code:'leitor' }); };
+    document.head.appendChild(s);
+  });
+}
+var cacheImg = {};
+function imagemDataUrl(src){
+  if (cacheImg[src]) return Promise.resolve(cacheImg[src]);
+  return fetch(src).then(function(r){ return r.blob(); }).then(function(b){
+    return new Promise(function(ok){ var fr = new FileReader(); fr.onload = function(){ cacheImg[src] = fr.result; ok(fr.result); }; fr.readAsDataURL(b); });
+  });
+}
+function slug(t){ return normTxt(t).replace(/\s+/g, '-').slice(0, 40) || 'cliente'; }
+function nomeArquivoOrc(o){ return 'Orcamento-' + numOrc(o.numero) + '-' + slug(o.cliente.nome) + '.pdf'; }
+function gerarPdfOrc(o){
+  return Promise.all([
+    carregaScript(JSPDF_URL, function(){ return !!(window.jspdf && window.jspdf.jsPDF); }),
+    imagemDataUrl('img/logo-bruna-vieira.png'),
+    imagemDataUrl('img/logo-bv.png')
+  ]).then(function(rs){
+    var logo = rs[1], mono = rs[2];
+    var doc = new window.jspdf.jsPDF({ unit:'mm', format:'a4' });
+    var E = EMP(), c = calcOrc(o), ev = o.evento, cl = o.cliente, cd = o.condicoes;
+    var W = 210, H = 297, M = 18, FIM = H - 26;
+    var GR = [110, 20, 35], TINTA = [31, 26, 27], CINZA = [105, 96, 98], LINHA = [228, 218, 220], ROSADO = [248, 241, 242];
+    var cor = function(c3){ doc.setTextColor(c3[0], c3[1], c3[2]); };
+    var y = 0;
+    function cabecalho(primeira){
+      if (primeira){
+        var lh = 27, lw = lh * 581 / 393;
+        doc.addImage(logo, 'PNG', M, 11, lw, lh);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(19); cor(GR);
+        doc.text('ORÇAMENTO', W - M, 19, { align:'right' });
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); cor(CINZA);
+        doc.text('Nº ' + numOrc(o.numero), W - M, 25.5, { align:'right' });
+        doc.text('Emitido em ' + dataBR(o.criado), W - M, 30.5, { align:'right' });
+        doc.text('Válido até ' + dataBR(validadeOrc(o)), W - M, 35.5, { align:'right' });
+        doc.setDrawColor(GR[0], GR[1], GR[2]); doc.setLineWidth(0.6); doc.line(M, 42, W - M, 42);
+        return 51;
+      }
+      doc.addImage(mono, 'PNG', M, 10, 13, 13 * 233 / 280);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); cor(CINZA);
+      doc.text('Orçamento nº ' + numOrc(o.numero) + ' · ' + cl.nome + ' (continuação)', W - M, 17, { align:'right' });
+      doc.setDrawColor(GR[0], GR[1], GR[2]); doc.setLineWidth(0.6); doc.line(M, 24, W - M, 24);
+      return 32;
+    }
+    function novaPagina(){ doc.addPage(); y = cabecalho(false); }
+    function garante(alt){ if (y + alt > FIM) novaPagina(); }
+    function rotulo(t, x, yy){ doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); cor(GR); doc.text(t.toUpperCase(), x, yy, { charSpace: 0.4 }); }
+    function texto(t, x, yy, op){ op = op || {}; doc.setFont('helvetica', op.negrito ? 'bold' : 'normal'); doc.setFontSize(op.tam || 10.5); cor(op.cor || TINTA); doc.text(t, x, yy, op.al ? { align: op.al } : undefined); }
+
+    y = cabecalho(true);
+    // cliente e evento
+    var xE = W / 2 + 4, yC = y, yEv = y;
+    rotulo('Cliente', M, yC); yC += 6;
+    texto(cl.nome, M, yC, { negrito:true }); yC += 5.5;
+    if (cl.telefone){ texto('WhatsApp: ' + cl.telefone, M, yC); yC += 5.5; }
+    if (cl.email){ texto(cl.email, M, yC); yC += 5.5; }
+    rotulo('Evento', xE, yEv); yEv += 6;
+    var tipoLinha = [ev.tipo, ev.convidados ? campoNum(ev.convidados) + ' convidados' : ''].filter(Boolean).join(' · ');
+    if (tipoLinha){ texto(tipoLinha, xE, yEv, { negrito:true }); yEv += 5.5; }
+    if (ev.data){ texto('Data: ' + dataBR(ev.data) + (ev.hora ? ' às ' + ev.hora : ''), xE, yEv); yEv += 5.5; }
+    texto(ev.entrega === 'entrega' ? 'Entrega no local' : 'Retirada no ateliê', xE, yEv); yEv += 5.5;
+    if (ev.local){
+      doc.setFontSize(10); var ll = doc.splitTextToSize(ev.local, W - M - xE);
+      ll.forEach(function(t){ texto(t, xE, yEv, { tam:10, cor:CINZA }); yEv += 4.8; });
+    }
+    y = Math.max(yC, yEv) + 6;
+
+    // tabela de itens
+    var cQ = 132, cU = 160, cS = W - M, larguraDesc = cQ - M - 22;
+    function cabTabela(){
+      doc.setFillColor(GR[0], GR[1], GR[2]); doc.rect(M, y, W - 2 * M, 8.5, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+      doc.text('Item', M + 3, y + 5.7); doc.text('Qtd', cQ, y + 5.7, { align:'right' });
+      doc.text('Valor unit.', cU, y + 5.7, { align:'right' }); doc.text('Subtotal', cS - 3, y + 5.7, { align:'right' });
+      y += 8.5;
+    }
+    garante(20); cabTabela();
+    doc.setFontSize(10);
+    o.itens.forEach(function(it, i){
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+      var linhas = doc.splitTextToSize(it.desc, larguraDesc);
+      var alt = Math.max(1, linhas.length) * 4.6 + 4;
+      if (y + alt > FIM){ novaPagina(); cabTabela(); }
+      if (i % 2 === 1){ doc.setFillColor(ROSADO[0], ROSADO[1], ROSADO[2]); doc.rect(M, y, W - 2 * M, alt, 'F'); }
+      cor(TINTA);
+      linhas.forEach(function(t, k){ doc.text(t, M + 3, y + 5.6 + k * 4.6); });
+      doc.text(campoNum(it.qtd), cQ, y + 5.6, { align:'right' });
+      doc.text(brl(it.unit), cU, y + 5.6, { align:'right' });
+      doc.setFont('helvetica', 'bold'); doc.text(brl(it.qtd * it.unit), cS - 3, y + 5.6, { align:'right' });
+      y += alt;
+    });
+    doc.setDrawColor(LINHA[0], LINHA[1], LINHA[2]); doc.setLineWidth(0.3); doc.line(M, y, W - M, y);
+    y += 7;
+
+    // totais
+    var xL = 150;
+    function linhaTotal(rot, val, op){
+      op = op || {}; garante(7);
+      texto(rot, xL, y, { al:'right', cor: op.cor || CINZA, tam: op.tam || 10, negrito: op.negrito });
+      texto(val, cS - 3, y, { al:'right', cor: op.corV || TINTA, tam: op.tam || 10, negrito: op.negrito });
+      y += op.passo || 6;
+    }
+    linhaTotal('Subtotal', brl(c.sub));
+    if (c.taxa) linhaTotal('Taxa de entrega', brl(c.taxa));
+    if (c.desc) linhaTotal('Desconto' + (o.desconto.tipo === 'pct' ? ' (' + campoNum(o.desconto.valor) + '%)' : ''), '- ' + brl(c.desc));
+    garante(14);
+    doc.setFillColor(ROSADO[0], ROSADO[1], ROSADO[2]); doc.roundedRect(xL - 38, y - 2, cS - xL + 38, 11, 2, 2, 'F');
+    y += 5.6;
+    linhaTotal('TOTAL', brl(c.total), { negrito:true, tam:13, cor:GR, corV:GR, passo:9 });
+    if (c.sinalPct){
+      linhaTotal('Sinal para reservar a data (' + campoNum(c.sinalPct) + '%)', brl(c.sinal));
+      linhaTotal('Saldo até a ' + (ev.entrega === 'entrega' ? 'entrega' : 'retirada'), brl(c.saldo));
+    }
+    y += 4;
+
+    // condições
+    garante(20);
+    rotulo('Condições', M, y); y += 6;
+    var conds = [];
+    if (cd.validadeDias) conds.push('Este orçamento vale por ' + campoNum(cd.validadeDias) + (Number(cd.validadeDias) === 1 ? ' dia' : ' dias') + ', até ' + dataBR(validadeOrc(o)) + '.');
+    if (c.sinalPct) conds.push('Sinal de ' + campoNum(c.sinalPct) + '% (' + brl(c.sinal) + ') para confirmar o pedido e reservar a data. Saldo de ' + brl(c.saldo) + ' até a ' + (ev.entrega === 'entrega' ? 'entrega' : 'retirada') + '.');
+    if (cd.pagamento) conds.push('Formas de pagamento: ' + String(cd.pagamento).trim().replace(/\.$/, '') + '.');
+    String(cd.obs || '').split(/\n+/).forEach(function(t){ t = t.trim(); if (t) conds.push(t); });
+    doc.setFontSize(10);
+    conds.forEach(function(t){
+      var ls = doc.splitTextToSize(t.replace(/\.\.$/, '.'), W - 2 * M - 6);
+      garante(ls.length * 4.8 + 1.5);
+      doc.setFillColor(GR[0], GR[1], GR[2]); doc.circle(M + 1.2, y - 1.2, 0.7, 'F');
+      ls.forEach(function(l, k){ texto(l, M + 5, y + k * 4.8, { tam:10 }); });
+      y += ls.length * 4.8 + 1.8;
+    });
+    y += 6; garante(10);
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(11); cor(GR);
+    doc.text('Obrigada pela preferência! Será um prazer adoçar o seu momento.', M, y);
+
+    // rodapé em todas as páginas
+    var total = doc.getNumberOfPages();
+    var contatos = [E.nome, E.whatsapp ? 'WhatsApp ' + E.whatsapp : '', E.instagram ? '@' + String(E.instagram).replace(/^@/, '') : '', E.email, E.cidade].filter(Boolean).join('   ·   ');
+    for (var p = 1; p <= total; p++){
+      doc.setPage(p);
+      var yr = H - 17;
+      doc.setDrawColor(LINHA[0], LINHA[1], LINHA[2]); doc.setLineWidth(0.3); doc.line(M, yr - 3, W - M, yr - 3);
+      doc.addImage(mono, 'PNG', M, yr - 0.5, 10, 10 * 233 / 280);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); cor(CINZA);
+      var lc = doc.splitTextToSize(contatos, W - 2 * M - 40);
+      lc.forEach(function(t, k){ doc.text(t, M + 13, yr + 3.2 + k * 3.8); });
+      doc.text('Página ' + p + ' de ' + total, W - M, yr + 3.2, { align:'right' });
+    }
+    return doc;
+  });
+}
+function baixarPdfOrc(compartilhar){
+  salvarOrc(true).catch(function(e){ if (e && e.code === 'validacao') throw e; }).then(function(){
+    toast('Gerando o PDF…');
+    var o = S.orcDraft;
+    return gerarPdfOrc(o).then(function(doc){
+      var nome = nomeArquivoOrc(o);
+      if (compartilhar){
+        var arq = new File([doc.output('blob')], nome, { type:'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files:[arq] })){
+          return navigator.share({ files:[arq], title:'Orçamento ' + numOrc(o.numero), text:'Olá, ' + o.cliente.nome.split(' ')[0] + '! Segue o orçamento dos doces.' }).catch(function(){});
+        }
+      }
+      doc.save(nome);
+      toast('PDF baixado');
+    });
+  }).catch(function(e){
+    if (e && e.code === 'validacao') return;
+    if (window.console) console.error(e);
+    toast(e && e.code === 'leitor' ? 'Não consegui carregar o gerador de PDF. Confira a internet.' : 'Não consegui gerar o PDF.');
+  });
+}
+
+/* ---------- dados da empresa ---------- */
+function vEmpresa(){
+  var e = S.empDraft;
+  var campo = function(k, rot, extra){ return '<label class="campo">' + rot + '<input class="entrada" data-emp="' + k + '" value="' + esc(e[k]) + '"' + (extra || '') + '></label>'; };
+  var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Orçamentos</button></div>';
+  out += '<div class="stack" style="gap:4px"><h1>Dados da empresa</h1><span class="sub">Aparecem no rodapé do PDF e preenchem as condições de cada orçamento novo.</span></div>';
+  out += '<div style="display:flex;justify-content:center;padding:6px 0"><img src="img/logo-bruna-vieira.png" alt="Logo Bruna Vieira Doces Finos" style="width:150px;height:auto"></div>';
+  out += '<section class="stack"><h2>Contato</h2>' + campo('nome', 'Nome da empresa') + campo('whatsapp', 'WhatsApp', ' type="tel" inputmode="tel" placeholder="(11) 90000-0000"') + campo('instagram', 'Instagram', ' placeholder="@seuperfil"') + campo('email', 'E-mail', ' type="email"') + campo('cidade', 'Cidade / bairro', ' placeholder="Ex.: Mooca, São Paulo"') + '</section>';
+  out += '<section class="stack"><h2>Condições padrão</h2><div class="cards2">' + campo('validadeDias', 'Validade (dias)', ' inputmode="numeric"') + campo('sinalPct', 'Sinal (%)', ' inputmode="decimal"') + '</div>' + campo('pagamento', 'Formas de pagamento') +
+    '<label class="campo">Observações padrão<textarea class="entrada" data-emp="obs" rows="6">' + esc(e.obs) + '</textarea></label></section>';
+  out += '<button class="btn" type="button" id="salvar-empresa">Salvar dados</button>';
+  return out;
+}
+
 function salvarIngrediente(){
   var d = S.ingDraft;
   // lê direto dos campos, para não perder o que o teclado ou o preenchimento automático digitou
@@ -1175,7 +1545,37 @@ document.addEventListener('click', function(ev){
   if (t.id === 'sel-nao'){ S.confirmaLote = false; atualizaBarra(); return; }
   if (t.id === 'sel-sim'){ excluirLote(); return; }
   if (t.hasAttribute('data-ing')){ abrirIngrediente(t.getAttribute('data-ing'), t.hasAttribute('data-volta') ? 'receita' : null); return; }
+  if (t.hasAttribute('data-orc')){ abrirOrc(t.getAttribute('data-orc')); return; }
+  if (t.hasAttribute('data-fst')){ S.filtroOrc = t.getAttribute('data-fst'); render(); return; }
+  if (t.id === 'abrir-empresa'){ S.empDraft = EMP(); ir('empresa'); return; }
+  if (t.id === 'salvar-empresa' && S.empDraft){
+    var ed = S.empDraft;
+    ed.validadeDias = num(ed.validadeDias); ed.sinalPct = num(ed.sinalPct);
+    if (ed.sinalPct != null && (ed.sinalPct < 0 || ed.sinalPct > 100)){ toast('O sinal precisa estar entre 0% e 100%.'); return; }
+    S.cfg = Object.assign({}, S.cfg || {}, { empresa: ed }); S.empDraft = null;
+    gravar('config/precos', S.cfg).then(function(){ toast('Dados da empresa salvos'); }).catch(falhou);
+    ir('orcamentos'); return;
+  }
+  if (S.orcDraft && S.view === 'orcamento'){
+    var od = S.orcDraft;
+    if (t.hasAttribute('data-st')){ od.status = t.getAttribute('data-st'); view.querySelectorAll('[data-st]').forEach(function(b){ b.setAttribute('aria-pressed', String(b === t)); }); return; }
+    if (t.hasAttribute('data-ent')){ od.evento.entrega = t.getAttribute('data-ent'); view.querySelectorAll('[data-ent]').forEach(function(b){ b.setAttribute('aria-pressed', String(b === t)); }); return; }
+    if (t.hasAttribute('data-dtipo')){ od.desconto.tipo = t.getAttribute('data-dtipo'); view.querySelectorAll('[data-dtipo]').forEach(function(b){ b.setAttribute('aria-pressed', String(b === t)); }); atualizaOrc(); return; }
+    if (t.hasAttribute('data-it-rm')){ od.itens.splice(Number(t.getAttribute('data-it-rm')), 1); render(); return; }
+    if (t.id === 'add-rec'){
+      var sr = document.getElementById('o-add-rec'), rid2 = sr && sr.value;
+      if (!rid2){ if (sr) sr.focus(); return; }
+      var rr = S.recs[rid2], cc = calc(rr);
+      od.itens.push({ recId: rid2, desc: rr.nome, qtd: null, unit: cc.preco, sugerido: cc.preco });
+      render(); var qs2 = view.querySelectorAll('[data-it-qtd]'); if (qs2.length) qs2[qs2.length - 1].focus(); return;
+    }
+    if (t.id === 'add-avulso'){ od.itens.push({ recId: null, desc: '', qtd: 1, unit: null, sugerido: null }); render(); var ds = view.querySelectorAll('[data-it-desc]'); if (ds.length) ds[ds.length - 1].focus(); return; }
+    if (t.id === 'salvar-orc'){ salvarOrc().catch(function(){}); return; }
+    if (t.id === 'pdf-orc'){ baixarPdfOrc(false); return; }
+    if (t.id === 'share-orc'){ baixarPdfOrc(true); return; }
+  }
   var nv = t.getAttribute('data-new');
+  if (nv === 'orc'){ abrirOrc(null); return; }
   if (nv === 'rec'){ abrirReceita(null); return; }
   if (nv === 'ing'){ abrirIngrediente(null, null); return; }
   if (t.id === 'exemplo'){ carregarExemplo(); return; }
@@ -1185,7 +1585,7 @@ document.addEventListener('click', function(ev){
     ['fixos','utens','simples','medio','complexo','lucro','taxa'].forEach(function(k){ if (cd[k] == null || cd[k] < 0) okc = false; });
     if (!okc){ S.erro = 'Preencha todos os percentuais (pode ser 0).'; render(); return; }
     if (cd.taxa >= 90){ S.erro = 'A taxa de venda precisa ser menor que 90%.'; render(); return; }
-    S.cfg = cd; S.cfgDraft = null;
+    S.cfg = Object.assign({}, S.cfg || {}, cd); cd = S.cfg; S.cfgDraft = null;
     gravar('config/precos', cd).then(function(){ toast('Padrões salvos'); }).catch(falhou);
     ir('inicio'); return;
   }
@@ -1193,6 +1593,8 @@ document.addEventListener('click', function(ev){
   if (t.id === 'importar-pdf'){ var fp = document.getElementById('arquivo-pdf'); if (fp) fp.click(); return; }
   if (t.id === 'importar'){ var fi = document.getElementById('arquivo-planilha'); if (fi) fi.click(); return; }
   if (t.id === 'confirmar-import' && S.importacao){ confirmarImportacao(); return; }
+  if (t.id === 'voltar' && S.view === 'orcamento'){ S.orcDraft = null; ir('orcamentos'); return; }
+  if (t.id === 'voltar' && S.view === 'empresa'){ S.empDraft = null; ir('orcamentos'); return; }
   if (t.id === 'voltar' && S.view === 'importar'){ S.importacao = null; ir('ingredientes'); return; }
   if (t.id === 'padrao-rec' && S.draft){ S.draft.pcts = {}; render(); toast('Percentuais voltaram ao padrão'); return; }
   if (t.hasAttribute('data-dif') && S.draft){
@@ -1211,6 +1613,7 @@ document.addEventListener('click', function(ev){
   if (t.id === 'excluir'){ S.confirma = true; render(); return; }
   if (t.id === 'nao-excluir'){ S.confirma = false; render(); return; }
   if (t.id === 'sim-excluir'){
+    if (S.view === 'orcamento' && S.orcDraft && S.orcDraft.id){ var oid = S.orcDraft.id; delete S.orcs[oid]; apagar('orcamentos/' + oid).then(function(){ toast('Orçamento excluído'); }).catch(falhou); S.orcDraft = null; ir('orcamentos'); return; }
     if (S.view === 'receita' && S.draft && S.draft.id){ var rid = S.draft.id; delete S.recs[rid]; apagar('receitas/' + rid).then(function(){ toast('Receita excluída'); }).catch(falhou); S.draft = null; ir('receitas'); }
     else if (S.view === 'ingrediente' && S.ingDraft && S.ingDraft.id){ var iid = S.ingDraft.id; delete S.ings[iid]; apagar('ingredientes/' + iid).then(function(){ toast('Ingrediente excluído'); }).catch(falhou); S.ingDraft = null; S.ingVolta = null; ir('ingredientes'); }
     return;
@@ -1281,6 +1684,21 @@ document.addEventListener('input', function(ev){
     if (id === 'r-margem'){ S.draft.margem = num(el.value); atualizaCalc(); return; }
     if (el.hasAttribute('data-q')){ var it = S.draft.itens[Number(el.getAttribute('data-q'))]; if (it){ it.qtd = num(el.value); atualizaCalc(); } return; }
   }
+  if (S.view === 'empresa' && S.empDraft && el.hasAttribute('data-emp')){ S.empDraft[el.getAttribute('data-emp')] = el.value; return; }
+  if (S.view === 'orcamento' && S.orcDraft){
+    var o2 = S.orcDraft;
+    if (S.erro){ S.erro = ''; var er2 = view.querySelector('.erro'); if (er2) er2.remove(); }
+    var mapaTxt = { 'o-cli-nome':['cliente','nome'], 'o-cli-tel':['cliente','telefone'], 'o-cli-email':['cliente','email'], 'o-ev-tipo':['evento','tipo'], 'o-ev-data':['evento','data'], 'o-ev-hora':['evento','hora'], 'o-ev-local':['evento','local'], 'o-pag':['condicoes','pagamento'], 'o-obs':['condicoes','obs'] };
+    if (mapaTxt[id]){ o2[mapaTxt[id][0]][mapaTxt[id][1]] = el.value; return; }
+    if (id === 'o-ev-conv'){ o2.evento.convidados = num(el.value); return; }
+    if (id === 'o-validade'){ o2.condicoes.validadeDias = num(el.value); return; }
+    if (id === 'o-sinal'){ o2.condicoes.sinalPct = num(el.value); atualizaOrc(); return; }
+    if (id === 'o-taxa'){ o2.taxaEntrega = num(el.value); atualizaOrc(); return; }
+    if (id === 'o-desc'){ o2.desconto.valor = num(el.value); atualizaOrc(); return; }
+    if (el.hasAttribute('data-it-desc')){ o2.itens[Number(el.getAttribute('data-it-desc'))].desc = el.value; return; }
+    if (el.hasAttribute('data-it-qtd')){ o2.itens[Number(el.getAttribute('data-it-qtd'))].qtd = num(el.value); atualizaOrc(); return; }
+    if (el.hasAttribute('data-it-unit')){ o2.itens[Number(el.getAttribute('data-it-unit'))].unit = num(el.value); atualizaOrc(); return; }
+  }
   if (id === 'compra-qtd'){ S.compraQtd = num(el.value); atualizaCompras(); return; }
   if (S.view === 'padroes' && S.cfgDraft && el.hasAttribute('data-cfg')){ S.cfgDraft[el.getAttribute('data-cfg')] = num(el.value); return; }
   if (S.ingDraft && S.view === 'ingrediente' && S.erro){ S.erro = ''; var avisoErro = view.querySelector('.erro'); if (avisoErro) avisoErro.remove(); }
@@ -1296,14 +1714,15 @@ function aoMudar(){
   if (!S.logado) return;
   if (S.view === 'receita') atualizaCalc();
   else if (S.view === 'compras') atualizaCompras();
-  else if (S.view !== 'ingrediente' && S.view !== 'padroes' && S.view !== 'importar') render();
+  else if (['ingrediente','padroes','importar','orcamento','empresa'].indexOf(S.view) < 0) render();
 }
 function carregar(){
   if (!sb || !uid) return;
   Promise.all([
     sb.from('ingredientes').select('id,dados'),
     sb.from('receitas').select('id,dados'),
-    sb.from('config').select('precos').maybeSingle()
+    sb.from('config').select('precos').maybeSingle(),
+    sb.from('orcamentos').select('id,dados')
   ]).then(function(rs){
     if (rs[0].error || rs[1].error) throw (rs[0].error || rs[1].error);
     var mapa = function(rows){
@@ -1312,6 +1731,7 @@ function carregar(){
       return o;
     };
     S.ings = mapa(rs[0].data); S.recs = mapa(rs[1].data);
+    S.semTabelaOrc = !!(rs[3] && rs[3].error); S.orcs = S.semTabelaOrc ? {} : mapa(rs[3].data);
     S.cfg = rs[2] && !rs[2].error && rs[2].data && rs[2].data.precos ? rs[2].data.precos : null;
     S.semBanco = false; S.carregou = { i:true, r:true }; aoMudar();
   }).catch(function(e){

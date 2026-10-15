@@ -6,10 +6,11 @@ App de precificação e cadastro de receitas da Bruna Vieira Doces Finos.
 - Receitas com categoria, rendimento, durabilidade, dificuldade e modo de preparo
 - Precificação: custos fixos, utensílios e embalagem, mão de obra (% ou por hora), lucro e taxa de venda
 - Lista de compras a partir da quantidade de doces
+- Orçamentos para clientes, com PDF que leva o logo no cabeçalho e no rodapé
 - Login por e-mail e senha, com "esqueci minha senha"
 - Instalável no celular (Adicionar à tela inicial)
 
-Site estático (HTML, CSS e JavaScript, sem build). Dados e login no Supabase. Hospedagem na Vercel.
+Site estático (HTML, CSS e JavaScript, sem build). Dados e login no Supabase. Hospedagem na Cloudflare (Workers & Pages).
 
 ## Arquivos
 
@@ -17,7 +18,9 @@ Site estático (HTML, CSS e JavaScript, sem build). Dados e login no Supabase. H
 |---|---|
 | `index.html` | O app inteiro |
 | `config.js` | URL e chave pública do Supabase |
-| `supabase/schema.sql` | Cria as tabelas e as regras de acesso |
+| `supabase/schema.sql` | Cria todas as tabelas e as regras de acesso |
+| `supabase/orcamentos.sql` | Só a tabela de orçamentos (para quem já rodou o schema antes) |
+| `img/` | Logo usado no PDF do orçamento |
 | `manifest.webmanifest`, `sw.js`, `icons/` | Deixam o app instalável no celular |
 
 ## Colocar no ar
