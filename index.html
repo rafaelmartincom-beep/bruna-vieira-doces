@@ -1198,12 +1198,6 @@ function campoHora(v){
     '<select id="o-ev-h" class="entrada" aria-labelledby="lbl-hora" style="padding:0 8px;flex:1 1 0;min-width:0">' + oh + '</select><span aria-hidden="true">:</span>' +
     '<select id="o-ev-m" class="entrada" aria-label="Minutos" style="padding:0 8px;flex:0 0 72px">' + om + '</select></div></div>';
 }
-function isoDeBR(t){
-  var m = String(t || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if (!m) return null;
-  var d = Number(m[1]), mes = Number(m[2]), a = Number(m[3]), dt = new Date(a, mes - 1, d);
-  if (dt.getFullYear() !== a || dt.getMonth() !== mes - 1 || dt.getDate() !== d) return null;
-  return m[3] + '-' + m[2] + '-' + m[1];
-}
 function fmtHora(v){ var m = String(v || '').match(/^(\d{1,2}):(\d{2})/); if (!m) return ''; var h = ('0' + m[1]).slice(-2); return m[2] === '00' ? h + 'h' : h + 'h' + m[2]; }
 function vOrcamento(){
   var o = S.orcDraft, ev = o.evento, cl = o.cliente, cd = o.condicoes;
@@ -1220,7 +1214,7 @@ function vOrcamento(){
 
   out += '<section class="stack"><h2>Evento</h2>' +
     '<label class="campo">Tipo de evento<input id="o-ev-tipo" class="entrada" list="tipos-evento" placeholder="Ex.: Casamento" value="' + esc(ev.tipo) + '"></label><datalist id="tipos-evento">' + TIPOS_EVENTO.map(function(t){ return '<option value="' + esc(t) + '"></option>'; }).join('') + '</datalist>' +
-    '<div class="cards2">' + campoTxt('o-ev-data', 'Data', ev.dataTxt != null ? ev.dataTxt : dataBR(ev.data), ' inputmode="numeric" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="off"') + campoHora(ev.hora) + '</div>' +
+    '<div class="cards2">' + campoTxt('o-ev-data', 'Data', ev.data, ' type="date"') + campoHora(ev.hora) + '</div>' +
     '<div class="seg" role="group" aria-label="Entrega ou retirada" style="width:100%"><button type="button" data-ent="retirada" aria-pressed="' + (ev.entrega !== 'entrega') + '" style="flex:1">Retirada</button><button type="button" data-ent="entrega" aria-pressed="' + (ev.entrega === 'entrega') + '" style="flex:1">Entrega</button></div>' +
     campoTxt('o-ev-local', 'Local do evento ou endereço de entrega', ev.local, ' placeholder="Opcional"') +
     campoTxt('o-ev-conv', 'Número de convidados', campoNum(ev.convidados), ' inputmode="numeric" placeholder="Opcional" style="max-width:160px"') + '</section>';
@@ -1272,7 +1266,6 @@ function atualizaOrc(){
 function validaOrc(){
   var o = S.orcDraft;
   if (!String(o.cliente.nome || '').trim()) return 'Digite o nome do cliente.';
-  if (o.evento.dataTxt && !o.evento.data) return 'Data do evento inválida. Use o formato DD/MM/AAAA, por exemplo 21/11/2026.';
   if (!o.itens.length) return 'Adicione pelo menos um doce ou item.';
   var ruim = o.itens.filter(function(it){ return !String(it.desc || '').trim() || !(it.qtd > 0) || it.unit == null; }).length;
   if (ruim) return ruim === 1 ? '1 item está sem descrição, quantidade ou valor.' : ruim + ' itens estão sem descrição, quantidade ou valor.';
@@ -1708,14 +1701,8 @@ document.addEventListener('input', function(ev){
   if (S.view === 'orcamento' && S.orcDraft){
     var o2 = S.orcDraft;
     if (S.erro){ S.erro = ''; var er2 = view.querySelector('.erro'); if (er2) er2.remove(); }
-    var mapaTxt = { 'o-cli-nome':['cliente','nome'], 'o-cli-tel':['cliente','telefone'], 'o-cli-email':['cliente','email'], 'o-ev-tipo':['evento','tipo'], 'o-ev-hora':['evento','hora'], 'o-ev-local':['evento','local'], 'o-pag':['condicoes','pagamento'], 'o-obs':['condicoes','obs'] };
+    var mapaTxt = { 'o-cli-nome':['cliente','nome'], 'o-cli-tel':['cliente','telefone'], 'o-cli-email':['cliente','email'], 'o-ev-tipo':['evento','tipo'], 'o-ev-data':['evento','data'], 'o-ev-hora':['evento','hora'], 'o-ev-local':['evento','local'], 'o-pag':['condicoes','pagamento'], 'o-obs':['condicoes','obs'] };
     if (mapaTxt[id]){ o2[mapaTxt[id][0]][mapaTxt[id][1]] = el.value; return; }
-    if (id === 'o-ev-data'){
-      var dg = el.value.replace(/\D/g, '').slice(0, 8);
-      var fd = dg.slice(0, 2) + (dg.length > 2 ? '/' + dg.slice(2, 4) : '') + (dg.length > 4 ? '/' + dg.slice(4) : '');
-      if (fd !== el.value) el.value = fd;
-      o2.evento.dataTxt = fd; o2.evento.data = isoDeBR(fd) || ''; return;
-    }
     if (id === 'o-ev-h' || id === 'o-ev-m'){
       var hh = (document.getElementById('o-ev-h') || {}).value || '', mi = (document.getElementById('o-ev-m') || {}).value || '00';
       o2.evento.hora = hh ? hh + ':' + mi : ''; return;
