@@ -1187,18 +1187,6 @@ function abrirOrc(id){
 function campoTxt(id, rotulo, valor, extra){
   return '<label class="campo">' + rotulo + '<input id="' + id + '" class="entrada" value="' + esc(valor) + '"' + (extra || '') + '></label>';
 }
-function campoHora(v){
-  var h = '', m = '00', mm = String(v || '').match(/^(\d{1,2}):(\d{2})/);
-  if (mm){ h = ('0' + mm[1]).slice(-2); m = mm[2]; }
-  var oh = '<option value="">Sem horário</option>';
-  for (var i = 0; i < 24; i++){ var x = ('0' + i).slice(-2); oh += '<option value="' + x + '"' + (x === h ? ' selected' : '') + '>' + x + 'h</option>'; }
-  var mins = ['00','15','30','45']; if (mins.indexOf(m) < 0) mins.push(m);
-  var om = mins.map(function(x){ return '<option value="' + x + '"' + (x === m ? ' selected' : '') + '>' + x + '</option>'; }).join('');
-  return '<div style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:500"><span id="lbl-hora">Horário</span><div class="row" style="gap:6px">' +
-    '<select id="o-ev-h" class="entrada" aria-labelledby="lbl-hora" style="padding:0 8px;flex:1 1 0;min-width:0">' + oh + '</select><span aria-hidden="true">:</span>' +
-    '<select id="o-ev-m" class="entrada" aria-label="Minutos" style="padding:0 8px;flex:0 0 72px">' + om + '</select></div></div>';
-}
-function fmtHora(v){ var m = String(v || '').match(/^(\d{1,2}):(\d{2})/); if (!m) return ''; var h = ('0' + m[1]).slice(-2); return m[2] === '00' ? h + 'h' : h + 'h' + m[2]; }
 function vOrcamento(){
   var o = S.orcDraft, ev = o.evento, cl = o.cliente, cd = o.condicoes;
   var salvo = o.id && S.orcs[o.id];
@@ -1214,7 +1202,7 @@ function vOrcamento(){
 
   out += '<section class="stack"><h2>Evento</h2>' +
     '<label class="campo">Tipo de evento<input id="o-ev-tipo" class="entrada" list="tipos-evento" placeholder="Ex.: Casamento" value="' + esc(ev.tipo) + '"></label><datalist id="tipos-evento">' + TIPOS_EVENTO.map(function(t){ return '<option value="' + esc(t) + '"></option>'; }).join('') + '</datalist>' +
-    '<div class="cards2">' + campoTxt('o-ev-data', 'Data', ev.data, ' type="date"') + campoHora(ev.hora) + '</div>' +
+    '<div class="cards2">' + campoTxt('o-ev-data', 'Data', ev.data, ' type="date"') + campoTxt('o-ev-hora', 'Horário', ev.hora, ' type="time"') + '</div>' +
     '<div class="seg" role="group" aria-label="Entrega ou retirada" style="width:100%"><button type="button" data-ent="retirada" aria-pressed="' + (ev.entrega !== 'entrega') + '" style="flex:1">Retirada</button><button type="button" data-ent="entrega" aria-pressed="' + (ev.entrega === 'entrega') + '" style="flex:1">Entrega</button></div>' +
     campoTxt('o-ev-local', 'Local do evento ou endereço de entrega', ev.local, ' placeholder="Opcional"') +
     campoTxt('o-ev-conv', 'Número de convidados', campoNum(ev.convidados), ' inputmode="numeric" placeholder="Opcional" style="max-width:160px"') + '</section>';
@@ -1357,7 +1345,7 @@ function gerarPdfOrc(o){
     rotulo('Evento', xE, yEv); yEv += 6;
     var tipoLinha = [ev.tipo, ev.convidados ? campoNum(ev.convidados) + ' convidados' : ''].filter(Boolean).join(' · ');
     if (tipoLinha){ texto(tipoLinha, xE, yEv, { negrito:true }); yEv += 5.5; }
-    if (ev.data){ texto('Data: ' + dataBR(ev.data) + (ev.hora ? ' às ' + fmtHora(ev.hora) : ''), xE, yEv); yEv += 5.5; }
+    if (ev.data){ texto('Data: ' + dataBR(ev.data) + (ev.hora ? ' às ' + ev.hora : ''), xE, yEv); yEv += 5.5; }
     texto(ev.entrega === 'entrega' ? 'Entrega no local' : 'Retirada no ateliê', xE, yEv); yEv += 5.5;
     if (ev.local){
       doc.setFontSize(10); var ll = doc.splitTextToSize(ev.local, W - M - xE);
@@ -1667,7 +1655,6 @@ document.addEventListener('submit', function(ev){
 document.addEventListener('change', function(ev){
   if (ev.target.id === 'arquivo-planilha'){ aoEscolherPlanilha(ev.target); return; }
   if (ev.target.id === 'arquivo-pdf'){ aoEscolherPdfs(ev.target); return; }
-  if (ev.target.id === 'o-ev-h' || ev.target.id === 'o-ev-m'){ ev.target.dispatchEvent(new Event('input', { bubbles: true })); return; }
   if (ev.target.hasAttribute('data-sel') && S.selIng){
     var sid = ev.target.getAttribute('data-sel');
     if (ev.target.checked) S.selIng[sid] = true; else delete S.selIng[sid];
@@ -1703,10 +1690,6 @@ document.addEventListener('input', function(ev){
     if (S.erro){ S.erro = ''; var er2 = view.querySelector('.erro'); if (er2) er2.remove(); }
     var mapaTxt = { 'o-cli-nome':['cliente','nome'], 'o-cli-tel':['cliente','telefone'], 'o-cli-email':['cliente','email'], 'o-ev-tipo':['evento','tipo'], 'o-ev-data':['evento','data'], 'o-ev-hora':['evento','hora'], 'o-ev-local':['evento','local'], 'o-pag':['condicoes','pagamento'], 'o-obs':['condicoes','obs'] };
     if (mapaTxt[id]){ o2[mapaTxt[id][0]][mapaTxt[id][1]] = el.value; return; }
-    if (id === 'o-ev-h' || id === 'o-ev-m'){
-      var hh = (document.getElementById('o-ev-h') || {}).value || '', mi = (document.getElementById('o-ev-m') || {}).value || '00';
-      o2.evento.hora = hh ? hh + ':' + mi : ''; return;
-    }
     if (id === 'o-ev-conv'){ o2.evento.convidados = num(el.value); return; }
     if (id === 'o-validade'){ o2.condicoes.validadeDias = num(el.value); return; }
     if (id === 'o-sinal'){ o2.condicoes.sinalPct = num(el.value); atualizaOrc(); return; }
