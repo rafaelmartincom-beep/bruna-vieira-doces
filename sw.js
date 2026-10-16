@@ -1,7 +1,7 @@
 // Service worker simples: busca sempre a versão mais nova na internet
 // e só usa a cópia guardada quando o celular está sem conexão.
 // Dados do Supabase nunca passam pelo cache.
-var CACHE = 'bv-app-v1';
+var CACHE = 'bv-app-v2';
 var ARQUIVOS = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {

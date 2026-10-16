@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Bruna Vieira Doces Finos</title>
 <meta name="description" content="Receitas, ingredientes e precificação da Bruna Vieira Doces Finos.">
-<meta name="theme-color" content="#6E1423">
+<meta name="theme-color" content="#7A3B20">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -17,8 +17,9 @@
 <style>
 /* App de uma coluna, estilo celular: conteúdo rolando, barra de abas fixa embaixo. Visual único claro, grená sobre branco. */
 :root{
-  --grena:#6E1423; --grena-escuro:#4E0D18; --rosado:#F6ECEE; --rosado-txt:#F3DDE1;
-  --fundo:#FFFFFF; --suave:#F7F3F3; --linha:#EFE6E8; --tinta:#1F1A1B; --apagado:#6E6466; --borda:#E4DADC;
+  /* cores do logo: marrom cobre do letreiro, rose gold do monograma, bege do fundo */
+  --grena:#7A3B20; --grena-escuro:#5C2A15; --rosado:#F4E8DD; --rosado-txt:#F1DDCB; --cobre:#B5784F;
+  --fundo:#FBF7F2; --suave:#F3EAE1; --linha:#EADCCF; --tinta:#2E1D14; --apagado:#76604F; --borda:#E0CFBF;
   --serif:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --sans:'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   color-scheme: light;
@@ -52,7 +53,7 @@ h2{margin:0;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:u
 .resumo b{display:block;font-family:var(--serif);font-size:38px;font-weight:600;line-height:1}
 .resumo span{font-size:12px;color:var(--rosado-txt)}
 
-.aviso{display:flex;align-items:center;gap:14px;min-height:60px;padding:10px 16px;border-radius:14px;background:#F8F1F2;border:0;width:100%;text-align:left}
+.aviso{display:flex;align-items:center;gap:14px;min-height:60px;padding:10px 16px;border-radius:14px;background:var(--rosado);border:0;width:100%;text-align:left}
 .ponto{width:8px;height:8px;border-radius:4px;background:var(--grena);flex-shrink:0}
 .aviso strong{display:block;font-size:15px;font-weight:600}
 .aviso small{display:block;font-size:13px;color:var(--apagado);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -124,7 +125,7 @@ label.campo{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weigh
 .vazio{border:1px dashed var(--borda);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
 .vazio p{margin:0;color:var(--apagado);line-height:1.5}
 
-.abas{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linha);z-index:5;padding-bottom:env(safe-area-inset-bottom, 0px)}
+.abas{position:fixed;left:0;right:0;bottom:0;background:var(--fundo);border-top:1px solid var(--linha);z-index:5;padding-bottom:env(safe-area-inset-bottom, 0px)}
 .abas-in{max-width:480px;margin:0 auto;display:flex;justify-content:space-around;padding:8px max(8px, env(safe-area-inset-left, 0px)) 10px max(8px, env(safe-area-inset-right, 0px))}
 .aba{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px;min-height:48px;border:0;background:none;color:var(--apagado);font-size:11px;font-weight:500}
 .aba[aria-current="page"]{color:var(--grena);font-weight:600}
@@ -132,12 +133,7 @@ label.campo{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weigh
 .toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--tinta);color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:500;z-index:10;max-width:calc(100% - 40px)}
 .login{min-height:calc(100vh - 80px);justify-content:center}
 .marca{display:flex;flex-direction:column;align-items:center;gap:4px;padding-bottom:28px}
-.marca .bv{position:relative;width:92px;height:86px}
-.marca .bv span{position:absolute;font-family:var(--serif);font-weight:500;line-height:1}
-.marca .bv .b{left:6px;top:-6px;font-size:92px;color:var(--grena)}
-.marca .bv .v{left:36px;top:10px;font-size:82px;color:#B4727D}
-.marca .nome{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--grena);line-height:1.1}
-.marca .linha2{font-size:11px;letter-spacing:5px;text-transform:uppercase;color:var(--apagado)}
+.marca img{width:min(240px, 70vw);height:auto;display:block}
 .form{display:flex;flex-direction:column;gap:16px}
 .sair{display:flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--borda);background:#fff;color:var(--grena);font-weight:600;font-size:14px;flex-shrink:0}
 .sair:hover{border-color:var(--grena)}
@@ -172,11 +168,7 @@ textarea.entrada{height:auto;min-height:140px;padding:12px 14px;line-height:1.5;
 </head>
 <body>
 <main id="view" class="app" aria-live="polite">
-  <div class="row between">
-    <div class="stack" style="gap:2px"><div class="sub">Carregando</div><h1>Bruna Vieira</h1></div>
-    <div class="mono" aria-hidden="true">BV</div>
-  </div>
-  <div class="vazio"><p>Buscando suas receitas e ingredientes.</p></div>
+  <div class="stack login"><div class="marca"><img src="img/logo-web.png" alt="Bruna Vieira Doces Finos, desde 2020" width="240" height="238"></div><p class="sub" style="text-align:center">Carregando</p></div>
 </main>
 <nav class="abas" id="abas" aria-label="Seções">
   <div class="abas-in">
@@ -311,7 +303,7 @@ function traduzErro(e){
   return 'Não deu certo agora. Tente de novo em instantes.';
 }
 function vLogin(){
-  var marca = '<div class="marca"><div class="bv" aria-hidden="true"><span class="b">B</span><span class="v">V</span></div><div class="nome">Bruna Vieira</div><div class="linha2">Doces finos</div></div>';
+  var marca = '<div class="marca"><img src="img/logo-web.png" alt="Bruna Vieira Doces Finos, desde 2020" width="240" height="238"></div>';
   var out = '<div class="stack login">' + marca;
   if (!sb && S.authPronto) return out + '<div class="faixa">O app ainda não está configurado. Falta colocar a chave do Supabase no arquivo config.js.</div></div>';
   if (!S.authPronto) return out + '<p class="sub" style="text-align:center">Carregando</p></div>';
@@ -1308,23 +1300,25 @@ function gerarPdfOrc(o){
     var doc = new window.jspdf.jsPDF({ unit:'mm', format:'a4' });
     var E = EMP(), c = calcOrc(o), ev = o.evento, cl = o.cliente, cd = o.condicoes;
     var W = 210, H = 297, M = 18, FIM = H - 26;
-    var GR = [110, 20, 35], TINTA = [31, 26, 27], CINZA = [105, 96, 98], LINHA = [228, 218, 220], ROSADO = [248, 241, 242];
+    var GR = [122, 59, 32], TINTA = [46, 29, 20], CINZA = [118, 96, 79], LINHA = [234, 220, 207], ROSADO = [247, 239, 231];
+    var pLogo = doc.getImageProperties(logo), pMono = doc.getImageProperties(mono);
+    var rLogo = pLogo.width / pLogo.height, rMono = pMono.height / pMono.width;
     var cor = function(c3){ doc.setTextColor(c3[0], c3[1], c3[2]); };
     var y = 0;
     function cabecalho(primeira){
       if (primeira){
-        var lh = 27, lw = lh * 581 / 393;
-        doc.addImage(logo, 'PNG', M, 11, lw, lh);
+        var lh = 34, lw = lh * rLogo;
+        doc.addImage(logo, 'PNG', M - 2, 9, lw, lh);
         doc.setFont('helvetica', 'bold'); doc.setFontSize(19); cor(GR);
         doc.text('ORÇAMENTO', W - M, 19, { align:'right' });
         doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); cor(CINZA);
         doc.text('Nº ' + numOrc(o.numero), W - M, 25.5, { align:'right' });
         doc.text('Emitido em ' + dataBR(o.criado), W - M, 30.5, { align:'right' });
         doc.text('Válido até ' + dataBR(validadeOrc(o)), W - M, 35.5, { align:'right' });
-        doc.setDrawColor(GR[0], GR[1], GR[2]); doc.setLineWidth(0.6); doc.line(M, 42, W - M, 42);
-        return 51;
+        doc.setDrawColor(GR[0], GR[1], GR[2]); doc.setLineWidth(0.6); doc.line(M, 47, W - M, 47);
+        return 56;
       }
-      doc.addImage(mono, 'PNG', M, 10, 13, 13 * 233 / 280);
+      doc.addImage(mono, 'PNG', M, 9, 16, 16 * rMono);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); cor(CINZA);
       doc.text('Orçamento nº ' + numOrc(o.numero) + ' · ' + cl.nome + ' (continuação)', W - M, 17, { align:'right' });
       doc.setDrawColor(GR[0], GR[1], GR[2]); doc.setLineWidth(0.6); doc.line(M, 24, W - M, 24);
@@ -1428,10 +1422,10 @@ function gerarPdfOrc(o){
       doc.setPage(p);
       var yr = H - 17;
       doc.setDrawColor(LINHA[0], LINHA[1], LINHA[2]); doc.setLineWidth(0.3); doc.line(M, yr - 3, W - M, yr - 3);
-      doc.addImage(mono, 'PNG', M, yr - 0.5, 10, 10 * 233 / 280);
+      doc.addImage(mono, 'PNG', M, yr - 1, 12, 12 * rMono);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); cor(CINZA);
       var lc = doc.splitTextToSize(contatos, W - 2 * M - 40);
-      lc.forEach(function(t, k){ doc.text(t, M + 13, yr + 3.2 + k * 3.8); });
+      lc.forEach(function(t, k){ doc.text(t, M + 15, yr + 3.2 + k * 3.8); });
       doc.text('Página ' + p + ' de ' + total, W - M, yr + 3.2, { align:'right' });
     }
     return doc;
@@ -1465,7 +1459,7 @@ function vEmpresa(){
   var campo = function(k, rot, extra){ return '<label class="campo">' + rot + '<input class="entrada" data-emp="' + k + '" value="' + esc(e[k]) + '"' + (extra || '') + '></label>'; };
   var out = '<div class="row between"><button class="voltar" type="button" id="voltar">' + ICON_VOLTA + 'Orçamentos</button></div>';
   out += '<div class="stack" style="gap:4px"><h1>Dados da empresa</h1><span class="sub">Aparecem no rodapé do PDF e preenchem as condições de cada orçamento novo.</span></div>';
-  out += '<div style="display:flex;justify-content:center;padding:6px 0"><img src="img/logo-bruna-vieira.png" alt="Logo Bruna Vieira Doces Finos" style="width:150px;height:auto"></div>';
+  out += '<div style="display:flex;justify-content:center;padding:6px 0"><img src="img/logo-web.png" alt="Logo Bruna Vieira Doces Finos" style="width:170px;height:auto"></div>';
   out += '<section class="stack"><h2>Contato</h2>' + campo('nome', 'Nome da empresa') + campo('whatsapp', 'WhatsApp', ' type="tel" inputmode="tel" placeholder="(11) 90000-0000"') + campo('instagram', 'Instagram', ' placeholder="@seuperfil"') + campo('email', 'E-mail', ' type="email"') + campo('cidade', 'Cidade / bairro', ' placeholder="Ex.: Mooca, São Paulo"') + '</section>';
   out += '<section class="stack"><h2>Condições padrão</h2><div class="cards2">' + campo('validadeDias', 'Validade (dias)', ' inputmode="numeric"') + campo('sinalPct', 'Sinal (%)', ' inputmode="decimal"') + '</div>' + campo('pagamento', 'Formas de pagamento') +
     '<label class="campo">Observações padrão<textarea class="entrada" data-emp="obs" rows="6">' + esc(e.obs) + '</textarea></label></section>';
